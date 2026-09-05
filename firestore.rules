@@ -1,0 +1,50 @@
+rules_version = '2';
+
+// Deploy with: firebase deploy --only firestore:rules
+// (requires the Firebase CLI logged into the same project as google-services.json).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Private per-account data: profile (incl. FCM tokens) and this account's own friend list.
+    // Only the owner can read or write it — the notification-server/ Admin SDK bypasses rules
+    // entirely, so it can still look up fcmTokens to send a push.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /{subcollection}/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Public, minimal, email-searchable directory — how adding a friend by email resolves to
+    // a real account. Deliberately holds nothing private (no tokens, no friend list).
+    match /userDirectory/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Shared documents: anyone listed in memberUids can read/write. A create must list the
+    // creator, so nobody can write themselves into a group/expense/settlement they aren't in.
+    match /groups/{groupId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid in resource.data.memberUids;
+      allow create: if request.auth != null && request.auth.uid in request.resource.data.memberUids;
+    }
+
+    match /sharedExpenses/{expenseId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid in resource.data.memberUids;
+      allow create: if request.auth != null && request.auth.uid in request.resource.data.memberUids;
+    }
+
+    match /settlements/{settlementId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid in resource.data.memberUids;
+      allow create: if request.auth != null && request.auth.uid in request.resource.data.memberUids;
+    }
+
+    // Write-only from the client's perspective — a Cloud Function (Admin SDK, bypasses rules)
+    // reads these to send the actual FCM push, then deletes them.
+    match /settlementReminders/{id} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.fromUid;
+      allow read: if request.auth != null && (request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid);
+    }
+  }
+}

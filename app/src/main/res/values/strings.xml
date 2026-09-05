@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">expense tracker</string>
+    <string name="widget_summary_name">Monthly Summary</string>
+    <string name="widget_summary_description">This month\'s expense, income and net at a glance.</string>
+    <string name="widget_recent_name">Recent Transactions</string>
+    <string name="widget_recent_description">Your most recent expenses and income.</string>
+    <string name="widget_quick_add_name">Quick Add</string>
+    <string name="widget_quick_add_description">Add an expense or income without opening the app.</string>
+</resources>

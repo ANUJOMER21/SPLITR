@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: expense-tracker-notification-server
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: FIREBASE_SERVICE_ACCOUNT_B64
+        sync: false

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "477797511093",
+    "project_id": "expense-a2ed0",
+    "storage_bucket": "expense-a2ed0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:477797511093:android:2e1ecacefab749c6bb33fc",
+        "android_client_info": {
+          "package_name": "com.omer.expensetracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "477797511093-0nuil45vgn0ii2n83r9m5h1vggeloo7h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.omer.expensetracker",
+            "certificate_hash": "1824b7319247ed921971f6b166f915a6a75c03f2"
+          }
+        },
+        {
+          "client_id": "477797511093-0p92c2ca73tl0ltghp1b5lah2b7170qu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.omer.expensetracker",
+            "certificate_hash": "0909b9e4042d871f9c1e80f84a0b64fcc483480a"
+          }
+        },
+        {
+          "client_id": "477797511093-o1v1lp8fqq0mnd70k2vnubkephjgt58a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGfJChWI8zuaqfnJnvdj---F6kgV1_3n8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "477797511093-o1v1lp8fqq0mnd70k2vnubkephjgt58a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

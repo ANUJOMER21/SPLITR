@@ -1,0 +1,14 @@
+{
+  "name": "expense-tracker-notification-server",
+  "description": "Replaces Firebase Cloud Functions (which need the paid Blaze plan) with a plain always-on Node service: Firestore onSnapshot listeners + firebase-admin messaging, deployable free on Render.",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "firebase-admin": "^12.7.0"
+  }
+}
