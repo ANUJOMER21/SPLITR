@@ -1,7 +1,11 @@
 
-# 💰 Expense Tracker
+# 💰 Splitr
 
 ### Ultimate Personal & Shared Finance Ecosystem for Android
+
+<p align="center">
+  <img src="app/src/main/res/drawable/logo.png" alt="Splitr Logo" width="140"/>
+</p>
 
 [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9+-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
@@ -16,10 +20,10 @@
 
 ---
 
-## ✨ Why Expense Tracker?
+## ✨ Why Splitr?
 
 Most expense apps force you to choose between **privacy**, **powerful features**, or **shared groups**.  
-This project aims to give you all three — without requiring paid cloud plans.
+Splitr aims to give you all three — without requiring paid cloud plans.
 
 - 🔒 Privacy-first (local-first with optional cloud sync)
 - 👥 Full group expense splitting with debt simplification
@@ -161,15 +165,7 @@ Follow the instructions in [`notification-server/README.md`](notification-server
 
 ---
 
-## 🗺 Roadmap
 
-- [ ] Multi-currency support
-- [ ] Export to CSV / PDF
-- [ ] Dark mode refinements
-- [ ] Web companion (optional)
-- [ ] Advanced insights with on-device ML
-
----
 
 ## 🤝 Contributing
 
