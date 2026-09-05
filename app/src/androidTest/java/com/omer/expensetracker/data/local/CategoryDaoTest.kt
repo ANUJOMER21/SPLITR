@@ -75,10 +75,10 @@ class CategoryDaoTest {
         categoryDao.insert(category("cat_food", "Food"))
         val today = LocalDate.of(2026, 9, 4)
         entryDao.insert(
-            EntryEntity("e1", "EXPENSE", 1500L, "cat_food", today.toEpochDay(), 0L, 0L)
+            EntryEntity("e1", "EXPENSE", 1500L, "cat_food", today.toEpochDay(), createdAt = 0L, updatedAt = 0L)
         )
         entryDao.insert(
-            EntryEntity("e2", "EXPENSE", 9999L, "cat_food", today.minusMonths(1).toEpochDay(), 0L, 0L)
+            EntryEntity("e2", "EXPENSE", 9999L, "cat_food", today.minusMonths(1).toEpochDay(), createdAt = 0L, updatedAt = 0L)
         )
 
         val start = today.withDayOfMonth(1).toEpochDay()
