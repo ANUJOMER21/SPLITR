@@ -12,5 +12,6 @@ class GlanceWidgetRefresher @Inject constructor(
     override suspend fun refreshAll() {
         SummaryWidget().updateAll(context)
         RecentTransactionsWidget().updateAll(context)
+        BalanceWidget().updateAll(context)
     }
 }

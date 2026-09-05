@@ -147,22 +147,19 @@ private fun CategoryChip(
     onClick: () -> Unit,
     icon: @Composable () -> Unit
 ) {
-    val borderColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-        label = "budgetChipBorderColor"
-    )
+
     Box(
         modifier = Modifier
             .padding(4.dp)
             .clip(CircleShape)
-            .border(2.5.dp, borderColor, CircleShape)
+
             .clickable(onClick = onClick)
             .semantics { contentDescription = "$name category" },
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.width(72.dp).padding(6.dp)
+            modifier = Modifier.width(80.dp).padding(6.dp)
         ) {
             icon()
             Text(

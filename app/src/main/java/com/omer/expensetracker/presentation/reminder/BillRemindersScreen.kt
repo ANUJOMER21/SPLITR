@@ -61,9 +61,7 @@ fun BillRemindersScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddReminder) {
-                Icon(Icons.Filled.Add, contentDescription = "Add reminder")
-            }
+            com.omer.expensetracker.presentation.components.SolidFab(onClick = onAddReminder, contentDescription = "Add reminder")
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {

@@ -39,7 +39,7 @@ fun GradientButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     Surface(
-        onClick = onClick,
+        onClick = hapticClick(onClick),
         enabled = enabled,
         interactionSource = interactionSource,
         shape = MaterialTheme.shapes.large,
@@ -72,7 +72,7 @@ fun GlassButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     Surface(
-        onClick = onClick,
+        onClick = hapticClick(onClick),
         interactionSource = interactionSource,
         shape = MaterialTheme.shapes.large,
         color = SurfaceGlass,

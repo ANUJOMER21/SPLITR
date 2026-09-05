@@ -118,7 +118,7 @@ fun FriendDetailScreen(
                             is FriendLedgerEntry.SettlementEntry -> "s:${it.settlement.id}"
                         }
                     }) { entry ->
-                        ListItemCard(onClick = {}, modifier = Modifier.animateItem()) {
+                        ListItemCard(onClick = {}, modifier = Modifier.animateItem(), paddingValues = PaddingValues(vertical = 6.dp)) {
                             when (entry) {
                                 is FriendLedgerEntry.ExpenseEntry -> {
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -35,7 +36,8 @@ fun EntryListRow(
     category: Category?,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    paddingValues: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
 ) {
     val amountColor = if (entry.type == EntryType.EXPENSE) MaterialTheme.colorScheme.error else IncomeGreen
     val sign = if (entry.type == EntryType.EXPENSE) "-" else "+"
@@ -43,6 +45,7 @@ fun EntryListRow(
     ListItemCard(
         onClick = onClick,
         onLongClick = onLongClick,
+        paddingValues = paddingValues,
         modifier = modifier.semantics {
             contentDescription = buildString {
                 append(if (entry.type == EntryType.EXPENSE) "Expense " else "Income ")

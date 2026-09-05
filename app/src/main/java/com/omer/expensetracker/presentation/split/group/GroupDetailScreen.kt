@@ -66,7 +66,7 @@ fun GroupDetailScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onAddExpense(viewModel.groupId) }) { Icon(Icons.Filled.Add, contentDescription = "Add expense") }
+            com.omer.expensetracker.presentation.components.SolidFab(onClick = { onAddExpense(viewModel.groupId) }, contentDescription = "Add expense")
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {

@@ -104,7 +104,7 @@ fun EntryListScreen(
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = { GradientFab(onClick = { showTypeChoice = true }) }
+        floatingActionButton = { com.omer.expensetracker.presentation.components.SolidFab(onClick = { showTypeChoice = true }, contentDescription = "Add entry") }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             Row(
@@ -255,26 +255,3 @@ private fun SectionHeader(label: String, modifier: Modifier = Modifier) {
     )
 }
 
-@Composable
-private fun GradientFab(onClick: () -> Unit) {
-    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-    Box(
-        modifier = Modifier
-            .size(60.dp)
-            .pressScale(interactionSource)
-            .background(Brush.linearGradient(listOf(AccentBlueDeep, AccentBlue)), CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            onClick = onClick,
-            interactionSource = interactionSource,
-            shape = CircleShape,
-            color = Color.Transparent,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                Icon(Icons.Filled.Add, contentDescription = "Add entry", tint = Color.White, modifier = Modifier.height(28.dp))
-            }
-        }
-    }
-}

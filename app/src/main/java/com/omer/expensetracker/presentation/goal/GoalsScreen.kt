@@ -58,9 +58,7 @@ fun GoalsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddGoal) {
-                Icon(Icons.Filled.Add, contentDescription = "Add goal")
-            }
+            com.omer.expensetracker.presentation.components.SolidFab(onClick = onAddGoal, contentDescription = "Add goal")
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {

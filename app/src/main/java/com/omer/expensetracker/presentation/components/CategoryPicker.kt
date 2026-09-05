@@ -7,6 +7,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -44,28 +45,52 @@ fun CategoryDot(
     colorArgb: Long,
     iconKey: String,
     modifier: Modifier = Modifier,
-    size: Dp = 40.dp,
+    size: Dp = 44.dp,
     selected: Boolean = false
 ) {
     val bg = Color(colorArgb)
+
     val scale by animateFloatAsState(
-        targetValue = if (selected) 1.1f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = 400f),
+        targetValue = if (selected) 1.12f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = 400f
+        ),
         label = "dotScale"
     )
+
+    val borderColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+        label = "dotBorder"
+    )
+
     Box(
         modifier = modifier
             .size(size)
-            .graphicsLayer { scaleX = scale; scaleY = scale }
-            .shadow(if (selected) 8.dp else 2.dp, CircleShape, spotColor = bg, ambientColor = bg)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .shadow(
+                elevation = if (selected) 10.dp else 3.dp,
+                shape = CircleShape,
+                spotColor = bg,
+                ambientColor = bg
+            )
             .clip(CircleShape)
-            .background(bg),
+            .background(bg)
+            .border(
+                width = if (selected) 2.5.dp else 0.dp,
+                color = borderColor,
+                shape = CircleShape
+            ),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = CategoryIconProvider.iconFor(iconKey),
             contentDescription = null,
-            tint = if (bg.luminance() > 0.5f) Color.Black else Color.White
+            tint = if (bg.luminance() > 0.55f) Color.Black.copy(alpha = 0.85f) else Color.White,
+            modifier = Modifier.size(size * 0.48f)
         )
     }
 }
@@ -78,9 +103,14 @@ fun CategoryPickerGrid(
     onSelect: (Category) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    FlowRow(modifier = modifier) {
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         categories.forEach { category ->
             val selected = category.id == selectedCategoryId
+
             CategoryPickerItem(
                 name = category.name,
                 colorArgb = category.colorArgb,
@@ -100,39 +130,43 @@ private fun CategoryPickerItem(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val borderColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-        label = "categoryBorderColor"
-    )
-    Box(
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .padding(4.dp)
-            .clip(CircleShape)
-            .border(2.5.dp, borderColor, CircleShape)
-            .clickable { onClick() }
+            .width(76.dp)
+            .clickable(
+                onClick = onClick,
+                role = Role.RadioButton
+            )
+            .padding(vertical = 4.dp)
             .semantics {
                 contentDescription = "$name category"
                 role = Role.RadioButton
-            },
-        contentAlignment = Alignment.Center
+            }
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        // Only the dot is circular
+        CategoryDot(
+            colorArgb = colorArgb,
+            iconKey = iconKey,
+            selected = selected,
+            size = 48.dp
+        )
+
+        Text(
+            text = name,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            color = if (selected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+            },
+            maxLines = 2,                       // allows longer names
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
             modifier = Modifier
+                .padding(top = 6.dp)
                 .width(72.dp)
-                .padding(6.dp)
-        ) {
-            CategoryDot(colorArgb, iconKey, selected = selected)
-            Text(
-                text = name,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
+        )
     }
 }

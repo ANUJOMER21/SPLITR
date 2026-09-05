@@ -3,6 +3,7 @@ package com.omer.expensetracker.presentation.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.IconButton
@@ -24,9 +25,10 @@ fun TonalIconButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     IconButton(
-        onClick = onClick,
+        onClick = hapticClick(onClick),
         interactionSource = interactionSource,
         modifier = modifier
+            .padding(horizontal = 16.dp)
             .size(40.dp)
             .pressScale(interactionSource, scaleDown = 0.88f)
             .clip(CircleShape)

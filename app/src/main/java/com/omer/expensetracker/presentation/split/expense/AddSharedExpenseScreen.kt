@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -43,7 +44,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omer.expensetracker.domain.model.split.Friend
@@ -234,21 +238,50 @@ fun AddSharedExpenseScreen(
 }
 
 @Composable
-private fun PersonChip(friend: Friend, selected: Boolean, onClick: () -> Unit) {
+private fun PersonChip(
+    friend: Friend,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .clip(CircleShape)
-            .border(2.5.dp, if (selected) MaterialTheme.colorScheme.primary else Color.Transparent, CircleShape)
             .clickable(onClick = onClick)
-            .padding(4.dp)
+            .padding(horizontal = 6.dp, vertical = 4.dp)
     ) {
-        FriendAvatar(displayName(friend), friend.avatarColorArgb, size = 40.dp)
+        // Only the avatar is circular + has selection ring
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .border(
+                    width = 2.5.dp,
+                    color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    shape = CircleShape
+                )
+                .padding(3.dp) // small gap between border and avatar
+        ) {
+            FriendAvatar(
+                name = displayName(friend),
+                colorArgb = friend.avatarColorArgb,
+                size = 44.dp
+            )
+        }
+
         Text(
-            displayName(friend),
+            text = displayName(friend),
             style = MaterialTheme.typography.labelSmall,
-            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 2.dp)
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (selected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(top = 6.dp)
+                .widthIn(max = 64.dp)
         )
     }
 }

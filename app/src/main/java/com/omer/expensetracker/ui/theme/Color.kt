@@ -18,6 +18,13 @@ val AccentCyan = Color(0xFF06B6D4)
 val AccentAmber = Color(0xFFF59E0B)
 val AccentCoral = Color(0xFFFB7159)
 val AccentTeal = Color(0xFF2DD4BF)
+val AccentViolet = Color(0xFF8B5CF6)
+val AccentMagenta = Color(0xFFE84DD3)
+
+// Background wash — the flat near-black base plus a subtle top-to-bottom tint shift,
+// so the app background itself reads as a gradient rather than one flat color.
+val BackgroundWashTop = Color(0xFF160F2E)
+val BackgroundWashBottom = Color(0xFF07050F)
 
 // Semantic aliases used across screens — coral reads as the "expense/negative" accent,
 // teal as the "income/positive" one, matching the reference design's category coloring.

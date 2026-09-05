@@ -76,9 +76,7 @@ fun GoalDetailScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = viewModel::openAddContribution) {
-                Icon(Icons.Filled.Add, contentDescription = "Log contribution")
-            }
+            com.omer.expensetracker.presentation.components.SolidFab(onClick = viewModel::openAddContribution, contentDescription = "Log contribution")
         }
     ) { padding ->
         if (detail == null) {
@@ -191,7 +189,7 @@ fun GoalDetailScreen(
 
 @Composable
 private fun ContributionRow(contribution: GoalContribution, onLongClick: () -> Unit, modifier: Modifier = Modifier) {
-    ListItemCard(onClick = {}, onLongClick = onLongClick, modifier = modifier) {
+    ListItemCard(onClick = {}, onLongClick = onLongClick, modifier = modifier, paddingValues = PaddingValues(vertical = 6.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween

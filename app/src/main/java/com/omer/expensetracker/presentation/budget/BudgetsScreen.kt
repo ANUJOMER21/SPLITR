@@ -63,9 +63,7 @@ fun BudgetsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddBudget) {
-                Icon(Icons.Filled.Add, contentDescription = "Add budget")
-            }
+            com.omer.expensetracker.presentation.components.SolidFab(onClick = onAddBudget, contentDescription = "Add budget")
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {

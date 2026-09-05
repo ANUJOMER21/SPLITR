@@ -1,12 +1,23 @@
 package com.omer.expensetracker.presentation.navigation
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.BarChart
@@ -16,15 +27,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
+import com.omer.expensetracker.presentation.components.hapticClick
 import com.omer.expensetracker.ui.theme.AccentBlue
+import com.omer.expensetracker.ui.theme.AccentBlueDeep
+import com.omer.expensetracker.ui.theme.AccentCyan
+import com.omer.expensetracker.ui.theme.TextPrimary
 
 private data class BottomTab(val route: String, val navigateRoute: String, val label: String, val icon: ImageVector)
 
@@ -52,36 +73,88 @@ fun ExpenseTrackerBottomNavBar(currentDestination: NavDestination?, navControlle
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp, top = 2.dp)
-            .background(Color(0xF0120E20), MaterialTheme.shapes.extraLarge)
-            .padding(9.dp),
+            .padding(bottom = 14.dp, top = 0.dp)
+            .background(Color(0xF0120E20), CircleShape)
+            .padding(vertical = 4.dp, horizontal = 9.dp),
         horizontalArrangement = Arrangement.SpaceAround
     ) {
         bottomTabs.forEach { tab ->
             val selected = currentDestination?.hierarchy?.any { it.route == tab.route } == true
-            val contentColor = if (selected) AccentBlue else MaterialTheme.colorScheme.onSurfaceVariant
+
+            val pillSize by animateDpAsState(
+                targetValue = if (selected) 36.dp else 30.dp,
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+                label = "navPillSize"
+            )
+            val pillAlpha by animateFloatAsState(
+                targetValue = if (selected) 1f else 0f,
+                animationSpec = tween(220),
+                label = "navPillAlpha"
+            )
+            val glowElevation by animateDpAsState(
+                targetValue = if (selected) 14.dp else 0.dp,
+                animationSpec = tween(220),
+                label = "navGlowElevation"
+            )
+            val lift by animateDpAsState(
+                targetValue = if (selected) (-3).dp else 0.dp,
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+                label = "navLift"
+            )
+            val iconSize by animateDpAsState(
+                targetValue = if (selected) 21.dp else 19.dp,
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+                label = "navIconSize"
+            )
+            val iconColor by animateColorAsState(
+                targetValue = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                animationSpec = tween(220),
+                label = "navIconColor"
+            )
+            val labelColor by animateColorAsState(
+                targetValue = if (selected) TextPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                animationSpec = tween(220),
+                label = "navLabelColor"
+            )
+
+            val onTap = hapticClick({
+                navController.navigate(tab.navigateRoute) {
+                    popUpTo(Screen.Dashboard.route) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            })
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .background(
-                        if (selected) AccentBlue.copy(alpha = 0.14f) else Color.Transparent,
-                        MaterialTheme.shapes.medium
+                    .graphicsLayer { translationY = lift.toPx() }
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onTap
                     )
-                    .clickable {
-                        navController.navigate(tab.navigateRoute) {
-                            popUpTo(Screen.Dashboard.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                    .padding(horizontal = 16.dp, vertical = 9.dp)
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
             ) {
-                Icon(tab.icon, contentDescription = tab.label, tint = contentColor, modifier = Modifier)
+                Box(
+                    modifier = Modifier.size(pillSize),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .shadow(elevation = glowElevation, shape = CircleShape, ambientColor = AccentBlue, spotColor = AccentBlue)
+                            .graphicsLayer { alpha = pillAlpha }
+                            .background(Brush.linearGradient(listOf(AccentBlueDeep, AccentBlue, AccentCyan)), CircleShape)
+                    )
+                    Icon(tab.icon, contentDescription = tab.label, tint = iconColor, modifier = Modifier.size(iconSize))
+                }
                 Text(
                     tab.label,
                     style = MaterialTheme.typography.labelSmall,
-                    color = contentColor,
-                    modifier = Modifier.padding(top = 4.dp)
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                    color = labelColor,
+                    modifier = Modifier.padding(top = 3.dp)
                 )
             }
         }

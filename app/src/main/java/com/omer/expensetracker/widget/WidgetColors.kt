@@ -1,19 +1,37 @@
 package com.omer.expensetracker.widget
 
-import androidx.compose.ui.graphics.Color
 import androidx.glance.unit.ColorProvider
+import com.omer.expensetracker.ui.theme.AccentBlue
+import com.omer.expensetracker.ui.theme.AccentBlueDeep
+import com.omer.expensetracker.ui.theme.AccentCoral
+import com.omer.expensetracker.ui.theme.AccentCyan
+import com.omer.expensetracker.ui.theme.AccentTeal
+import com.omer.expensetracker.ui.theme.AccentViolet
+import com.omer.expensetracker.ui.theme.BackgroundWashTop
+import com.omer.expensetracker.ui.theme.SurfaceGlass2
+import com.omer.expensetracker.ui.theme.TextPrimary
+import com.omer.expensetracker.ui.theme.TextSecondary
+import com.omer.expensetracker.ui.theme.TextTertiary
 
-/** Glance widgets can't read MaterialTheme — these mirror the app's dark palette
- * ([com.omer.expensetracker.ui.theme.Color]) so the widget matches the app exactly.
- * Must use the Compose-[Color] overload of [ColorProvider] — the Int overload is a
- * @ColorRes *resource id* lookup, not a raw ARGB value, and fails at render time. */
+/** Glance widgets can't read MaterialTheme, and can't use Brush gradients — these reuse the
+ * app's actual palette constants directly ([com.omer.expensetracker.ui.theme.Color]) so a
+ * future theme change here propagates to the home-screen widgets automatically instead of
+ * silently drifting out of sync again. Must use the Compose-[androidx.compose.ui.graphics.Color]
+ * overload of [ColorProvider] — the Int overload is a @ColorRes *resource id* lookup, not a raw
+ * ARGB value, and fails at render time. */
 object WidgetColors {
-    val Background = ColorProvider(Color(0xFF15161C))
-    val Surface = ColorProvider(Color(0xFF1E2028))
-    val OnSurface = ColorProvider(Color(0xFFECEDF2))
-    val OnSurfaceMuted = ColorProvider(Color(0xFFA3A6B4))
-    val Primary = ColorProvider(Color(0xFF8C7CFF))
-    val OnPrimary = ColorProvider(Color(0xFF1B1030))
-    val Expense = ColorProvider(Color(0xFFFF6B7F))
-    val Income = ColorProvider(Color(0xFF35D48C))
+    val Background = ColorProvider(BackgroundWashTop)
+    val Surface = ColorProvider(SurfaceGlass2)
+    val OnSurface = ColorProvider(TextPrimary)
+    val OnSurfaceMuted = ColorProvider(TextSecondary)
+    val OnSurfaceFaint = ColorProvider(TextTertiary)
+
+    val Primary = ColorProvider(AccentBlue)
+    val PrimaryDeep = ColorProvider(AccentBlueDeep)
+    val OnPrimary = ColorProvider(androidx.compose.ui.graphics.Color.White)
+    val Cyan = ColorProvider(AccentCyan)
+    val Violet = ColorProvider(AccentViolet)
+
+    val Expense = ColorProvider(AccentCoral)
+    val Income = ColorProvider(AccentTeal)
 }

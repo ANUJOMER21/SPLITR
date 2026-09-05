@@ -74,9 +74,7 @@ fun ManageCategoriesScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddCategory) {
-                Icon(Icons.Filled.Add, contentDescription = "Add category")
-            }
+            com.omer.expensetracker.presentation.components.SolidFab(onClick = onAddCategory, contentDescription = "Add category")
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->

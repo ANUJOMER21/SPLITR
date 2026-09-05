@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -26,6 +25,9 @@ import com.omer.expensetracker.domain.model.EntryType
 import com.omer.expensetracker.presentation.components.AmountInputField
 import com.omer.expensetracker.presentation.components.CategoryPickerGrid
 import com.omer.expensetracker.presentation.components.DatePickerField
+import com.omer.expensetracker.presentation.components.GradientButton
+import com.omer.expensetracker.ui.theme.AccentCoral
+import com.omer.expensetracker.ui.theme.AccentTeal
 import com.omer.expensetracker.ui.theme.ExpenseTrackerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -115,12 +117,12 @@ private fun QuickAddSheet(
                 }
             }
 
-            Button(
+            GradientButton(
+                text = if (state.type == EntryType.EXPENSE) "Add Expense" else "Add Income",
                 onClick = viewModel::save,
+                gradient = if (state.type == EntryType.EXPENSE) listOf(AccentCoral, AccentCoral) else listOf(AccentTeal, AccentTeal),
                 modifier = Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 8.dp)
-            ) {
-                Text(if (state.type == EntryType.EXPENSE) "Add Expense" else "Add Income")
-            }
+            )
         }
     }
 }

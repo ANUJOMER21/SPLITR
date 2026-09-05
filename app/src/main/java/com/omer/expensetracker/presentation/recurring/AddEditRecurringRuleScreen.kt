@@ -1,6 +1,7 @@
 package com.omer.expensetracker.presentation.recurring
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -101,16 +102,20 @@ fun AddEditRecurringRuleScreen(
             }
 
             Text("Repeats every", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 20.dp, bottom = 8.dp))
-            androidx.compose.foundation.layout.Row(
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 OutlinedTextField(
                     value = state.intervalCountText,
                     onValueChange = viewModel::onIntervalCountChange,
-                    label = { Text("N") },
-                    modifier = Modifier.weight(1f)
+                    label = { Text("Every") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
                 )
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.weight(2f)) {
+
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     listOf(RecurrenceUnit.DAY, RecurrenceUnit.WEEK, RecurrenceUnit.MONTH).forEachIndexed { index, u ->
                         SegmentedButton(
                             selected = state.unit == u,
@@ -123,6 +128,7 @@ fun AddEditRecurringRuleScreen(
                     }
                 }
             }
+
 
             DatePickerField(
                 date = state.startDate,

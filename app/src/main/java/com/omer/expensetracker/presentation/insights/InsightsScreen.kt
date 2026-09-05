@@ -241,7 +241,7 @@ private fun TopCategoriesTab(items: List<TopCategoryInsight>) {
     }
     LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
         items(items, key = { it.category.id }) { item ->
-            ListItemCard(onClick = {}, modifier = Modifier.animateItem()) {
+            ListItemCard(onClick = {}, modifier = Modifier.animateItem(), paddingValues = PaddingValues(vertical = 6.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     CategoryDot(item.category.colorArgb, item.category.iconKey, size = 40.dp)
                     Column(modifier = Modifier.weight(1f)) {
@@ -279,7 +279,7 @@ private fun HeatmapTab(cells: List<HeatmapCell>) {
     LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)) {
         items(cells.sortedBy { it.dayOfWeek }, key = { it.dayOfWeek }) { cell ->
             val dayName = DayOfWeek.of(cell.dayOfWeek).getDisplayName(TextStyle.FULL, Locale.getDefault())
-            ListItemCard(onClick = {}, modifier = Modifier.fillMaxWidth().animateItem()) {
+            ListItemCard(onClick = {}, modifier = Modifier.fillMaxWidth().animateItem(), paddingValues = PaddingValues(vertical = 6.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier.size(32.dp).clip(CircleShape).background(SurfaceGlass),
@@ -347,7 +347,7 @@ private fun IncomeVsExpenseTab(state: InsightsUiState) {
 
 @Composable
 private fun MonthOverMonthRow(change: MonthOverMonthChange) {
-    ListItemCard(onClick = {}) {
+    ListItemCard(onClick = {}, paddingValues = PaddingValues(vertical = 6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             change.category?.let { CategoryDot(it.colorArgb, it.iconKey, size = 36.dp) }
             Text(change.category?.name ?: "Unknown", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
@@ -405,7 +405,7 @@ private fun AnomaliesTab(anomalies: List<AnomalyFlag>) {
     }
     LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
         items(anomalies, key = { it.entry.id }) { flag ->
-            ListItemCard(onClick = {}, modifier = Modifier.animateItem()) {
+            ListItemCard(onClick = {}, modifier = Modifier.animateItem(), paddingValues = PaddingValues(vertical = 6.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(
                         modifier = Modifier.size(40.dp).clip(CircleShape).background(WarningAmber.copy(alpha = 0.18f)),
@@ -436,7 +436,7 @@ private fun SharedTab(balances: List<SharedFriendBalance>) {
     }
     LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
         items(balances, key = { it.friendId }) { balance ->
-            ListItemCard(onClick = {}, modifier = Modifier.animateItem()) {
+            ListItemCard(onClick = {}, modifier = Modifier.animateItem(), paddingValues = PaddingValues(vertical = 6.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     FriendAvatar(balance.name, balance.colorArgb, size = 36.dp)
                     Text(balance.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))

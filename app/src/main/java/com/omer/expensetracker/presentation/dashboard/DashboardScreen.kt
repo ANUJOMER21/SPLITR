@@ -1,5 +1,6 @@
 package com.omer.expensetracker.presentation.dashboard
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +20,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import com.omer.expensetracker.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
@@ -47,8 +51,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omer.expensetracker.domain.model.BudgetProgress
 import com.omer.expensetracker.domain.model.BudgetStatus
@@ -104,19 +110,29 @@ fun DashboardScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(38.dp)
-                                .background(Brush.linearGradient(listOf(HeroGradientStart, HeroGradientEnd)), RoundedCornerShape(12.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Filled.AccountBalanceWallet, contentDescription = null, tint = Color.White, modifier = Modifier.size(19.dp))
+//                        Image(
+//                            painter = painterResource(R.drawable.logo),
+//                            contentDescription = null,
+//                            modifier = Modifier
+//                                .size(36.dp)
+//                                .clip(RoundedCornerShape(10.dp))
+//                        )
+                        Column(modifier = Modifier.padding(start = 10.dp)) {
+                            Text(
+                                text = "Splitr",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight =
+                                        FontWeight.SemiBold,
+                                    letterSpacing = 0.2.sp
+                                ),
+                                color = Color.White
+                            )
+                            Text(
+                                text = "Expense Tracker",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.7f)
+                            )
                         }
-                        Text(
-                            "Expense Tracker",
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(start = 11.dp)
-                        )
                     }
                 },
                 actions = {
@@ -144,7 +160,7 @@ fun DashboardScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 20.dp),
+                    .padding(top = 28.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 GradientButton(
@@ -220,13 +236,14 @@ fun DashboardScreen(
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             } else {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     state.recentEntries.forEach { entry ->
                         EntryListRow(
                             entry = entry,
                             category = entry.categoryId?.let { state.categoriesById[it] },
                             onClick = { onEntryClick(entry.id) },
-                            onLongClick = {}
+                            onLongClick = {},
+                            paddingValues = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
                         )
                     }
                 }
@@ -329,7 +346,7 @@ private fun SharedExpensesCard(
     onSettleUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ListItemCard(onClick = {}, modifier = modifier) {
+    ListItemCard(onClick = {}, modifier = modifier, paddingValues = PaddingValues(vertical = 6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             GradientIconBadge(icon = Icons.Filled.PeopleAlt, gradient = BadgeGradients[1])
             Column(modifier = Modifier.weight(1f)) {
@@ -437,7 +454,7 @@ private fun QuickAccessRow(
         itemsIndexed(items) { index, item ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.width(64.dp).clickable(onClick = item.onClick)
+                modifier = Modifier.width(72.dp).clickable(onClick = item.onClick)
             ) {
                 GradientIconBadge(icon = item.icon, gradient = BadgeGradients[index % BadgeGradients.size], size = 52.dp)
                 Text(

@@ -79,7 +79,7 @@ fun SimplifyDebtsScreen(
                 } else {
                     LazyColumn(contentPadding = PaddingValues(vertical = 14.dp)) {
                         items(state.simplifiedPayments) { payment ->
-                            ListItemCard(onClick = {}, modifier = Modifier.animateItem()) {
+                            ListItemCard(onClick = {}, modifier = Modifier.animateItem(), paddingValues = PaddingValues(vertical = 6.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                     Text(payment.fromName, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                                     Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -101,7 +101,7 @@ fun SimplifyDebtsScreen(
                 } else {
                     LazyColumn(contentPadding = PaddingValues(vertical = 14.dp)) {
                         items(state.rawBalances) { (name, net) ->
-                            ListItemCard(onClick = {}, modifier = Modifier.animateItem()) {
+                            ListItemCard(onClick = {}, modifier = Modifier.animateItem(), paddingValues = PaddingValues(vertical = 6.dp)) {
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                     Text(name, style = MaterialTheme.typography.bodyLarge)
                                     Text(netMinorLabel(net), color = netMinorColor(net), style = MaterialTheme.typography.bodyLarge)

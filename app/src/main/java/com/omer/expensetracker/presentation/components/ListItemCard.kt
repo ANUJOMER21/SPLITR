@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
 
 /** A floating, elevated card wrapper for list rows — replaces flat edge-to-edge rows with
@@ -40,8 +41,8 @@ fun ListItemCard(
             .pressScale(interactionSource)
             .combinedClickable(
                 interactionSource = interactionSource,
-                onClick = onClick,
-                onLongClick = onLongClick
+                onClick = hapticClick(onClick),
+                onLongClick = onLongClick?.let { hapticClick(it, HapticFeedbackType.LongPress) }
             ),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),

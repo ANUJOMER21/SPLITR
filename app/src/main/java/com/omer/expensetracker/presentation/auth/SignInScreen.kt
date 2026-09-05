@@ -1,6 +1,7 @@
 package com.omer.expensetracker.presentation.auth
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,23 +31,23 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.credentials.CredentialManager
-import androidx.credentials.CustomCredential
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.GetCredentialException
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.CommonStatusCodes
 import com.omer.expensetracker.R
 import com.omer.expensetracker.presentation.components.pressScale
 import com.omer.expensetracker.ui.theme.AccentBlue
@@ -54,7 +55,6 @@ import com.omer.expensetracker.ui.theme.AccentBlueDeep
 import com.omer.expensetracker.ui.theme.AccentCyan
 import com.omer.expensetracker.ui.theme.BorderGlass
 import com.omer.expensetracker.ui.theme.SurfaceGlass
-import kotlinx.coroutines.launch
 
 private data class SignInHighlight(val icon: androidx.compose.ui.graphics.vector.ImageVector, val title: String, val subtitle: String)
 
@@ -71,38 +71,52 @@ fun SignInScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val credentialManager = remember { CredentialManager.create(context) }
     var credentialError by remember { mutableStateOf<String?>(null) }
+    var isRequestingCredential by remember { mutableStateOf(false) }
+
+    // Legacy GoogleSignInClient (play-services-auth), not Credential Manager: Credential
+    // Manager's system picker activity is confirmed (via device logcat) to crash on init on
+    // some Samsung One UI builds, hanging sign-in forever with zero feedback. This path drives
+    // Google Play Services' own sign-in UI directly and sidesteps that OS-level bug.
+    val googleSignInClient = remember {
+        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        GoogleSignIn.getClient(context, options)
+    }
+
+    val signInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        isRequestingCredential = false
+        try {
+            val account = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                .getResult(ApiException::class.java)
+            val idToken = account.idToken
+            if (idToken != null) {
+                credentialError = null
+                viewModel.signInWithGoogle(idToken)
+            } else {
+                credentialError = "Google sign-in failed: no ID token returned"
+            }
+        } catch (e: ApiException) {
+            Log.w("SignInScreen", "Google sign-in failed: status=${e.statusCode}", e)
+            credentialError = when (e.statusCode) {
+                CommonStatusCodes.CANCELED -> null // user backed out — not an error
+                CommonStatusCodes.NETWORK_ERROR -> "No internet connection — check your network and try again"
+                else -> "Google sign-in failed (code ${e.statusCode}) — make sure Google Play Services is up to date"
+            }
+        }
+    }
 
     LaunchedEffect(state.signedIn) { if (state.signedIn) onSignedIn() }
 
     fun launchGoogleSignIn() {
-        scope.launch {
-            credentialError = null
-            try {
-                val googleIdOption = GetGoogleIdOption.Builder()
-                    .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(context.getString(R.string.default_web_client_id))
-                    .build()
-                val request = GetCredentialRequest.Builder()
-                    .addCredentialOption(googleIdOption)
-                    .build()
-                val result = credentialManager.getCredential(context, request)
-                val credential = result.credential
-                if (credential is CustomCredential &&
-                    credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-                ) {
-                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                    viewModel.signInWithGoogle(googleIdTokenCredential.idToken)
-                } else {
-                    Log.w("SignInScreen", "Unexpected credential type: ${credential.type}")
-                }
-            } catch (e: GetCredentialException) {
-                Log.w("SignInScreen", "Google sign-in failed", e)
-                credentialError = "No Google account available on this device — add one in Settings first"
-            }
-        }
+        if (isRequestingCredential) return
+        isRequestingCredential = true
+        credentialError = null
+        signInLauncher.launch(googleSignInClient.signInIntent)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -113,15 +127,17 @@ fun SignInScreen(
                 .padding(horizontal = 28.dp)
         ) {
             Spacer(Modifier.weight(1f))
+            Image(painter = painterResource(R.drawable.logo),contentDescription = null, modifier = Modifier
+                .size(88.dp),)
 
-            Box(
-                modifier = Modifier
-                    .size(88.dp)
-                    .background(Brush.linearGradient(listOf(AccentBlueDeep, AccentBlue, AccentCyan)), RoundedCornerShape(26.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Filled.Groups, contentDescription = null, tint = Color.White, modifier = Modifier.size(44.dp))
-            }
+//            Box(
+//                modifier = Modifier
+//                    .size(88.dp)
+//                    .background(Brush.linearGradient(listOf(AccentBlueDeep, AccentBlue, AccentCyan)), RoundedCornerShape(26.dp)),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                Icon(Icons.Filled.Groups, contentDescription = null, tint = Color.White, modifier = Modifier.size(44.dp))
+//            }
 
             Text(
                 "Split expenses.\nStay in sync.",
@@ -160,7 +176,7 @@ fun SignInScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                GoogleSignInButton(onClick = ::launchGoogleSignIn)
+                GoogleSignInButton(onClick = ::launchGoogleSignIn, isLoading = isRequestingCredential)
                 (state.error ?: credentialError)?.let {
                     Text(
                         it,
@@ -181,10 +197,11 @@ fun SignInScreen(
 }
 
 @Composable
-private fun GoogleSignInButton(onClick: () -> Unit) {
+private fun GoogleSignInButton(onClick: () -> Unit, isLoading: Boolean = false) {
     val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     Surface(
         onClick = onClick,
+        enabled = !isLoading,
         interactionSource = interactionSource,
         shape = RoundedCornerShape(16.dp),
         color = Color.White,
@@ -198,14 +215,29 @@ private fun GoogleSignInButton(onClick: () -> Unit) {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            GoogleG(modifier = Modifier.size(22.dp))
-            Text(
-                "Continue with Google",
-                color = Color(0xFF1F1F1F),
-                fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 12.dp)
-            )
+            if (isLoading) {
+                CircularProgressIndicator(color = Color(0xFF1F1F1F), modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
+                Text(
+                    "Waiting for Google...",
+                    color = Color(0xFF1F1F1F),
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            } else {
+                Image(
+                    painter = painterResource(R.drawable.ic_google),
+                    contentDescription = "Google",
+                    modifier = Modifier.size(22.dp)
+                )
+                Text(
+                    "Continue with Google",
+                    color = Color(0xFF1F1F1F),
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            }
         }
     }
 }

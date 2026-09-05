@@ -69,7 +69,7 @@ fun NotificationsScreen(
             )
             else -> LazyColumn(
                 modifier = Modifier.padding(padding).fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                contentPadding = PaddingValues(vertical = 8.dp)
             ) {
                 items(state.items, key = { it.id }) { item ->
                     NotificationRow(item, modifier = Modifier.animateItem())

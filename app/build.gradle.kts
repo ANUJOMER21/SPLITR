@@ -129,10 +129,11 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
 
-    // Google Sign-In via Credential Manager
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation(libs.googleid)
+    // Google Sign-In — legacy GoogleSignInClient (play-services-auth), not Credential Manager.
+    // Credential Manager's system picker (com.android.credentialmanager.CredentialSelectorActivity)
+    // crashes on init on some Samsung One UI builds (DeadObjectException, OS-level bug, confirmed
+    // via logcat), hanging sign-in indefinitely. This path avoids that system activity entirely.
+    implementation(libs.play.services.auth)
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 

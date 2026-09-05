@@ -25,6 +25,7 @@ import com.omer.expensetracker.domain.model.split.YOU_FRIEND_ID
 import com.omer.expensetracker.domain.repository.split.ExpenseWrite
 import com.omer.expensetracker.domain.repository.split.SharedExpenseDetail
 import com.omer.expensetracker.domain.repository.split.SharedExpenseRepository
+import com.omer.expensetracker.domain.service.WidgetRefresher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -50,7 +51,8 @@ class SharedExpenseRepositoryImpl @Inject constructor(
     private val activityLogDao: ActivityLogDao,
     private val commentAttachmentDao: CommentAttachmentDao,
     private val entryDao: EntryDao,
-    private val syncOutbox: SyncOutbox
+    private val syncOutbox: SyncOutbox,
+    private val widgetRefresher: WidgetRefresher
 ) : SharedExpenseRepository {
 
     override fun observeAll(): Flow<List<SharedExpense>> =
@@ -69,33 +71,49 @@ class SharedExpenseRepositoryImpl @Inject constructor(
         return SharedExpenseDetail(entity.toDomain(), payers, splits)
     }
 
-    override suspend fun addExpense(write: ExpenseWrite): SharedExpense = db.withTransaction {
-        val id = UUID.randomUUID().toString()
-        val entity = insertNew(id, write)
-        syncOutbox.enqueue(SyncEntityType.EXPENSE, id, SyncOperation.UPSERT)
-        entity
+    override suspend fun addExpense(write: ExpenseWrite): SharedExpense {
+        val entity = db.withTransaction {
+            val id = UUID.randomUUID().toString()
+            val entity = insertNew(id, write)
+            syncOutbox.enqueue(SyncEntityType.EXPENSE, id, SyncOperation.UPSERT)
+            entity
+        }
+        widgetRefresher.refreshAll()
+        return entity
     }
 
-    override suspend fun editExpense(id: String, write: ExpenseWrite): Unit = db.withTransaction {
-        val existing = expenseDao.getById(id) ?: return@withTransaction
-        replaceExisting(existing, write)
-        syncOutbox.enqueue(SyncEntityType.EXPENSE, id, SyncOperation.UPSERT)
+    override suspend fun editExpense(id: String, write: ExpenseWrite) {
+        db.withTransaction {
+            val existing = expenseDao.getById(id) ?: return@withTransaction
+            replaceExisting(existing, write)
+            syncOutbox.enqueue(SyncEntityType.EXPENSE, id, SyncOperation.UPSERT)
+        }
+        widgetRefresher.refreshAll()
     }
 
-    override suspend fun deleteExpense(id: String): Unit = db.withTransaction {
-        val existing = expenseDao.getById(id) ?: return@withTransaction
-        reverseAndSoftDelete(existing)
-        syncOutbox.enqueue(SyncEntityType.EXPENSE, id, SyncOperation.DELETE)
+    override suspend fun deleteExpense(id: String) {
+        db.withTransaction {
+            val existing = expenseDao.getById(id) ?: return@withTransaction
+            reverseAndSoftDelete(existing)
+            syncOutbox.enqueue(SyncEntityType.EXPENSE, id, SyncOperation.DELETE)
+        }
+        widgetRefresher.refreshAll()
     }
 
-    override suspend fun upsertFromRemote(id: String, write: ExpenseWrite): Unit = db.withTransaction {
-        val existing = expenseDao.getById(id)
-        if (existing == null) insertNew(id, write) else replaceExisting(existing, write)
+    override suspend fun upsertFromRemote(id: String, write: ExpenseWrite) {
+        db.withTransaction {
+            val existing = expenseDao.getById(id)
+            if (existing == null) insertNew(id, write) else replaceExisting(existing, write)
+        }
+        widgetRefresher.refreshAll()
     }
 
-    override suspend fun deleteFromRemote(id: String): Unit = db.withTransaction {
-        val existing = expenseDao.getById(id) ?: return@withTransaction
-        reverseAndSoftDelete(existing)
+    override suspend fun deleteFromRemote(id: String) {
+        db.withTransaction {
+            val existing = expenseDao.getById(id) ?: return@withTransaction
+            reverseAndSoftDelete(existing)
+        }
+        widgetRefresher.refreshAll()
     }
 
     override fun observeComments(expenseId: String) =

@@ -1,5 +1,7 @@
 package com.omer.expensetracker.widget
 
+import com.omer.expensetracker.domain.repository.split.BalanceRepository
+import com.omer.expensetracker.domain.repository.split.FriendRepository
 import com.omer.expensetracker.domain.usecase.AddExpenseUseCase
 import com.omer.expensetracker.domain.usecase.AddIncomeUseCase
 import com.omer.expensetracker.domain.usecase.GetFilteredEntriesUseCase
@@ -24,6 +26,8 @@ interface WidgetEntryPoint {
     fun getActiveCategoriesUseCase(): GetActiveCategoriesUseCase
     fun addExpenseUseCase(): AddExpenseUseCase
     fun addIncomeUseCase(): AddIncomeUseCase
+    fun friendRepository(): FriendRepository
+    fun balanceRepository(): BalanceRepository
 }
 
 fun Context.widgetEntryPoint(): WidgetEntryPoint =

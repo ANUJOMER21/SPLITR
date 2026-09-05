@@ -1,6 +1,7 @@
 package com.omer.expensetracker.presentation.account
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -47,7 +48,7 @@ fun AccountScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp)) {
-            ListItemCard(onClick = {}, modifier = Modifier.padding(top = 12.dp)) {
+            ListItemCard(onClick = {}, modifier = Modifier.padding(top = 12.dp), paddingValues = PaddingValues(vertical = 6.dp)) {
                 Column(modifier = Modifier.padding(4.dp)) {
                     Text(
                         when (state.status) {

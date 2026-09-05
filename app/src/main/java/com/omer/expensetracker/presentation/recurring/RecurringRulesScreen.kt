@@ -66,9 +66,7 @@ fun RecurringRulesScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddRule) {
-                Icon(Icons.Filled.Add, contentDescription = "Add recurring rule")
-            }
+            com.omer.expensetracker.presentation.components.SolidFab(onClick = onAddRule, contentDescription = "Add recurring rule")
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {

@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 
 /** Subtle spring-back scale-down while pressed — the tactile cue that reads as "modern app"
  * instead of a flat, static tap target. */
@@ -26,4 +28,17 @@ fun Modifier.pressScale(pressed: Boolean, scaleDown: Float = 0.95f): Modifier {
 fun Modifier.pressScale(interactionSource: MutableInteractionSource, scaleDown: Float = 0.95f): Modifier {
     val pressed by interactionSource.collectIsPressedAsState()
     return pressScale(pressed, scaleDown)
+}
+
+/** Wraps [onClick] with a short haptic buzz, fired once per tap — unlike [pressScale] this
+ * reacts to the click event itself, not press state, so it can't double-fire during a held
+ * press. [type] defaults to a light tick; pass [HapticFeedbackType.LongPress] for a stronger
+ * buzz on destructive or long-press actions. */
+@Composable
+fun hapticClick(onClick: () -> Unit, type: HapticFeedbackType = HapticFeedbackType.TextHandleMove): () -> Unit {
+    val haptic = LocalHapticFeedback.current
+    return {
+        haptic.performHapticFeedback(type)
+        onClick()
+    }
 }

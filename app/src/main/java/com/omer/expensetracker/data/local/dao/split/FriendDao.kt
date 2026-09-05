@@ -2,6 +2,7 @@ package com.omer.expensetracker.data.local.dao.split
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.omer.expensetracker.data.local.entity.split.FriendEntity
@@ -21,7 +22,11 @@ interface FriendDao {
     @Query("SELECT * FROM friends WHERE linkedUserId = :uid LIMIT 1")
     suspend fun getByLinkedUserId(uid: String): FriendEntity?
 
-    @Insert
+    // REPLACE, not the default ABORT: concurrent Firestore listeners (groups/expenses/
+    // settlements/friends all resolving the same newly-seen uid at once) can race an
+    // insert-vs-insert for the same friend id — REPLACE makes that last-write-wins instead
+    // of crashing with a UNIQUE constraint violation.
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(friend: FriendEntity)
 
     @Update
