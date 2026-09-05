@@ -70,6 +70,8 @@ class DashboardViewModel @Inject constructor(
     ) { state, balances, entries, catsById ->
         state.copy(
             sharedNetMinor = balances.sumOf { it.netMinor },
+            sharedOwedToYouMinor = balances.sumOf { if (it.netMinor > 0L) it.netMinor else 0L },
+            sharedYouOweMinor = balances.sumOf { if (it.netMinor < 0L) -it.netMinor else 0L },
             sharedFriendCount = balances.count { it.netMinor != 0L },
             recentEntries = entries,
             categoriesById = catsById

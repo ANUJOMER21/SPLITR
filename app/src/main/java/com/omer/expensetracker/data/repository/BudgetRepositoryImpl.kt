@@ -1,8 +1,12 @@
 package com.omer.expensetracker.data.repository
 
 import com.omer.expensetracker.data.local.dao.BudgetDao
+import com.omer.expensetracker.data.local.dao.CategoryDao
 import com.omer.expensetracker.data.local.entity.BudgetEntity
 import com.omer.expensetracker.data.mapper.toDomain
+import com.omer.expensetracker.data.repository.sync.SyncEntityType
+import com.omer.expensetracker.data.repository.sync.SyncOperation
+import com.omer.expensetracker.data.repository.sync.SyncOutbox
 import com.omer.expensetracker.domain.model.Budget
 import com.omer.expensetracker.domain.model.BudgetMonthSnapshot
 import com.omer.expensetracker.domain.model.BudgetProgress
@@ -14,7 +18,9 @@ import java.util.UUID
 import javax.inject.Inject
 
 class BudgetRepositoryImpl @Inject constructor(
-    private val budgetDao: BudgetDao
+    private val budgetDao: BudgetDao,
+    private val categoryDao: CategoryDao,
+    private val syncOutbox: SyncOutbox
 ) : BudgetRepository {
 
     override fun observeBudgetsWithProgress(month: YearMonth): Flow<List<BudgetProgress>> {
@@ -52,6 +58,7 @@ class BudgetRepositoryImpl @Inject constructor(
         return if (existing != null) {
             val updated = existing.copy(monthlyLimitMinor = monthlyLimitMinor, updatedAt = now)
             budgetDao.update(updated)
+            syncOutbox.enqueue(SyncEntityType.BUDGET, updated.id, SyncOperation.UPSERT)
             updated.toDomain()
         } else {
             val budget = Budget(
@@ -74,11 +81,34 @@ class BudgetRepositoryImpl @Inject constructor(
                     updatedAt = now
                 )
             )
+            syncOutbox.enqueue(SyncEntityType.BUDGET, budget.id, SyncOperation.UPSERT)
             budget
         }
     }
 
     override suspend fun deleteBudget(id: String) {
+        budgetDao.softDelete(id, System.currentTimeMillis())
+        syncOutbox.enqueue(SyncEntityType.BUDGET, id, SyncOperation.DELETE)
+    }
+
+    override suspend fun upsertFromRemote(budget: Budget) {
+        val existing = budgetDao.getById(budget.id)
+        if (existing != null && existing.updatedAt >= budget.updatedAt) return
+        val safeCategoryId = budget.categoryId?.takeIf { categoryDao.getById(it) != null }
+        budgetDao.upsert(
+            BudgetEntity(
+                id = budget.id,
+                categoryId = safeCategoryId,
+                monthlyLimitMinor = budget.monthlyLimitMinor,
+                warningNotifiedMonth = budget.warningNotifiedMonth,
+                breachNotifiedMonth = budget.breachNotifiedMonth,
+                createdAt = budget.createdAt,
+                updatedAt = budget.updatedAt
+            )
+        )
+    }
+
+    override suspend fun deleteFromRemote(id: String) {
         budgetDao.softDelete(id, System.currentTimeMillis())
     }
 

@@ -113,6 +113,9 @@ data class Settlement(
     val date: LocalDate,
     val note: String?,
     val groupId: String?,
+    /** Shared by every slice of one friend-level settlement that was split across multiple
+     * groups; null for a plain single-bucket settlement. See [ExpenseSplit] neighbours. */
+    val batchId: String? = null,
     val createdAt: Long,
     val updatedAt: Long,
     val isDeleted: Boolean = false

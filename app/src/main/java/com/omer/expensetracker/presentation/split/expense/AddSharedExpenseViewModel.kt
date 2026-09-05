@@ -58,14 +58,18 @@ class AddSharedExpenseViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val groupId: String = requireNotNull(savedStateHandle["groupId"])
+    private val groupId: String? = savedStateHandle.get<String>("groupId")?.takeIf { it.isNotBlank() }
+    /** Set (with [groupId] null) when the expense is shared with one friend outside any group. */
+    private val friendId: String? = savedStateHandle.get<String>("friendId")?.takeIf { it.isNotBlank() }
     private val expenseId: String? = savedStateHandle.get<String>("expenseId")?.takeIf { it != NEW_ID }
     private val isEditing = expenseId != null
 
     private val description = MutableStateFlow("")
     private val amountText = MutableStateFlow("")
     private val date = MutableStateFlow(LocalDate.now())
-    private val selectedParticipantIds = MutableStateFlow(setOf(YOU_FRIEND_ID))
+    private val selectedParticipantIds = MutableStateFlow(
+        if (friendId != null) setOf(YOU_FRIEND_ID, friendId) else setOf(YOU_FRIEND_ID)
+    )
     private val selectedPayerIds = MutableStateFlow(setOf(YOU_FRIEND_ID))
     private val payerAmountText = MutableStateFlow<Map<String, String>>(emptyMap())
     private val splitMode = MutableStateFlow(SplitMode.EQUAL)
@@ -76,9 +80,25 @@ class AddSharedExpenseViewModel @Inject constructor(
     private val isSaved = MutableStateFlow(false)
     private val isDeleted = MutableStateFlow(false)
 
-    private val availableParticipants = kotlinx.coroutines.flow.combine(
-        groupRepository.observeMemberIds(groupId), friendRepository.observeFriends()
-    ) { memberIds, friends -> friends.filter { it.id in memberIds || it.isYou } }
+    private val availableParticipants = if (groupId != null) {
+        kotlinx.coroutines.flow.combine(
+            groupRepository.observeMemberIds(groupId), friendRepository.observeFriends()
+        ) { memberIds, friends -> friends.filter { it.id in memberIds || it.isYou } }
+    } else {
+        // Non-group expense: just You and the friend it's shared with (plus anyone already on
+        // the expense when editing) — never the whole friends list.
+        kotlinx.coroutines.flow.combine(
+            friendRepository.observeFriends(), selectedParticipantIds, selectedPayerIds
+        ) { friends, participantIds, payerIds ->
+            val keep = buildSet {
+                add(YOU_FRIEND_ID)
+                friendId?.let { add(it) }
+                addAll(participantIds)
+                addAll(payerIds)
+            }
+            friends.filter { it.isYou || it.id in keep }
+        }
+    }
 
     init {
         val id = expenseId

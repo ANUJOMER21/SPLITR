@@ -30,14 +30,21 @@ private const val MIN_DISPLAY_MS = 500L
 fun SplashScreen(
     onSignedIn: () -> Unit,
     onSignedOut: () -> Unit,
+    onNeedsOnboarding: () -> Unit,
     viewModel: AuthGateViewModel = hiltViewModel()
 ) {
     val isSignedIn by viewModel.isSignedIn.collectAsState()
+    val onboardingComplete by viewModel.onboardingComplete.collectAsState()
 
-    LaunchedEffect(isSignedIn) {
+    LaunchedEffect(isSignedIn, onboardingComplete) {
         val signedIn = isSignedIn ?: return@LaunchedEffect
+        val onboarded = onboardingComplete ?: return@LaunchedEffect
         delay(MIN_DISPLAY_MS)
-        if (signedIn) onSignedIn() else onSignedOut()
+        when {
+            !onboarded -> onNeedsOnboarding()
+            signedIn -> onSignedIn()
+            else -> onSignedOut()
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

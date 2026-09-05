@@ -5,6 +5,10 @@ const val NEW_ID = "new"
 sealed class Screen(val route: String) {
     data object Splash : Screen("splash")
 
+    data object Onboarding : Screen("onboarding")
+
+    data object Settings : Screen("settings_screen")
+
     data object Dashboard : Screen("dashboard")
 
     data object EntryList : Screen("entries?categoryId={categoryId}") {
@@ -73,8 +77,11 @@ sealed class Screen(val route: String) {
         fun route(groupId: String) = "group/$groupId"
     }
 
-    data object AddSharedExpense : Screen("group/{groupId}/expense/{expenseId}") {
-        fun route(groupId: String, expenseId: String = NEW_ID) = "group/$groupId/expense/$expenseId"
+    data object AddSharedExpense : Screen("sharedExpense/{expenseId}?groupId={groupId}&friendId={friendId}") {
+        /** [groupId] scopes the expense to a group; pass [friendId] instead (with [groupId] null)
+         * for a non-group expense shared with one friend. */
+        fun route(expenseId: String = NEW_ID, groupId: String? = null, friendId: String? = null) =
+            "sharedExpense/$expenseId?groupId=${groupId ?: ""}&friendId=${friendId ?: ""}"
     }
 
     data object SimplifyDebts : Screen("group/{groupId}/simplify") {
@@ -84,6 +91,8 @@ sealed class Screen(val route: String) {
     data object SettleUp : Screen("settle/{friendId}?groupId={groupId}") {
         fun route(friendId: String, groupId: String? = null) = "settle/$friendId?groupId=${groupId ?: ""}"
     }
+
+    data object SplitHome : Screen("split_home")
 
     data object SplitActivityFeed : Screen("split_activity")
 

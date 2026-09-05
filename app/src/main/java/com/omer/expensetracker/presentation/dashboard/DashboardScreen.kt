@@ -193,6 +193,8 @@ fun DashboardScreen(
             if (FeatureFlags.SPLIT_WITH_FRIENDS_ENABLED) {
                 SharedExpensesCard(
                     netMinor = state.sharedNetMinor,
+                    owedToYouMinor = state.sharedOwedToYouMinor,
+                    youOweMinor = state.sharedYouOweMinor,
                     friendCount = state.sharedFriendCount,
                     onAddExpense = onOpenGroups,
                     onSettleUp = onOpenFriends,
@@ -341,21 +343,37 @@ private fun BalanceCard(state: DashboardUiState, onCategoryClick: (String) -> Un
 @Composable
 private fun SharedExpensesCard(
     netMinor: Long,
+    owedToYouMinor: Long,
+    youOweMinor: Long,
     friendCount: Int,
     onAddExpense: () -> Unit,
     onSettleUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ListItemCard(onClick = {}, modifier = modifier, paddingValues = PaddingValues(vertical = 6.dp)) {
+    ListItemCard(onClick = onSettleUp, modifier = modifier, paddingValues = PaddingValues(vertical = 6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             GradientIconBadge(icon = Icons.Filled.PeopleAlt, gradient = BadgeGradients[1])
             Column(modifier = Modifier.weight(1f)) {
                 Text("Shared expenses", style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    if (friendCount == 0) "Nothing outstanding" else netMinorLabel(netMinor),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (friendCount == 0) MaterialTheme.colorScheme.onSurfaceVariant else netMinorColor(netMinor)
-                )
+                when {
+                    friendCount == 0 -> Text(
+                        "Nothing outstanding",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    else -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (owedToYouMinor > 0L) Text(
+                            "you're owed ${owedToYouMinor.formatAsCurrency()}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = netMinorColor(1)
+                        )
+                        if (youOweMinor > 0L) Text(
+                            "you owe ${youOweMinor.formatAsCurrency()}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = netMinorColor(-1)
+                        )
+                    }
+                }
             }
         }
         Row(

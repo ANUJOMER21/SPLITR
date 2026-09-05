@@ -11,7 +11,7 @@ import javax.inject.Inject
 class AddExpenseUseCase @Inject constructor(
     private val entryRepository: EntryRepository
 ) {
-    suspend operator fun invoke(amountMinor: Long, categoryId: String?, date: LocalDate): UseCaseResult<Entry> {
+    suspend operator fun invoke(amountMinor: Long, categoryId: String?, date: LocalDate, note: String? = null, photoUri: String? = null): UseCaseResult<Entry> {
         val validation = EntryValidation.validate(EntryType.EXPENSE, amountMinor, categoryId)
         if (validation is UseCaseResult.Failure) return validation
 
@@ -22,6 +22,8 @@ class AddExpenseUseCase @Inject constructor(
             amountMinor = amountMinor,
             categoryId = categoryId,
             date = date,
+            note = note,
+            photoUri = photoUri,
             createdAt = now,
             updatedAt = now
         )

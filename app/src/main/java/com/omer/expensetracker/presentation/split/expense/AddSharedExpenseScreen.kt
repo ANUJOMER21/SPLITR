@@ -3,6 +3,7 @@ package com.omer.expensetracker.presentation.split.expense
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -138,7 +139,12 @@ fun AddSharedExpenseScreen(
             DatePickerField(date = state.date, onDateChange = viewModel::onDateChange)
 
             FieldLabel("Paid by", modifier = Modifier.padding(top = 22.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+            ) {
                 state.availableParticipants.forEach { friend ->
                     PersonChip(friend, selected = friend.id in state.selectedPayerIds, onClick = { viewModel.togglePayer(friend.id) })
                 }

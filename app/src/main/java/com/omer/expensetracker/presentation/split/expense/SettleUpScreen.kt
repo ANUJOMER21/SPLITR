@@ -1,6 +1,8 @@
 package com.omer.expensetracker.presentation.split.expense
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
@@ -35,8 +39,10 @@ import com.omer.expensetracker.presentation.components.AmountInputField
 import com.omer.expensetracker.presentation.components.DatePickerField
 import com.omer.expensetracker.presentation.components.FieldLabel
 import com.omer.expensetracker.presentation.components.GradientButton
+import com.omer.expensetracker.presentation.components.ListItemCard
 import com.omer.expensetracker.presentation.components.TonalIconButton
 import com.omer.expensetracker.presentation.components.themedSegmentedColors
+import com.omer.expensetracker.presentation.util.formatAsCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +90,28 @@ fun SettleUpScreen(
                     shape = SegmentedButtonDefaults.itemShape(1, 2),
                     colors = themedSegmentedColors()
                 ) { Text("You pay $friendName") }
+            }
+
+            if (state.isMultiBucket) {
+                FieldLabel("Settle across groups", modifier = Modifier.padding(top = 20.dp))
+                Text(
+                    "$friendName has balances in ${state.buckets.size} places — pick which ones this payment settles.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+                state.buckets.forEach { bucket ->
+                    ListItemCard(
+                        onClick = { viewModel.onToggleBucket(bucket.groupId) },
+                        paddingValues = PaddingValues(vertical = 4.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Checkbox(checked = bucket.selected, onCheckedChange = { viewModel.onToggleBucket(bucket.groupId) })
+                            Text(bucket.label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                            Text(bucket.outstandingMinor.formatAsCurrency(), style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
             }
 
             FieldLabel("Amount", modifier = Modifier.padding(top = 20.dp))

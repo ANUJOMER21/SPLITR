@@ -3,6 +3,7 @@ package com.omer.expensetracker.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import androidx.room.Update
 import com.omer.expensetracker.data.local.entity.BudgetEntity
 import kotlinx.coroutines.flow.Flow
@@ -55,6 +56,9 @@ interface BudgetDao {
 
     @Insert
     suspend fun insert(budget: BudgetEntity)
+
+    @Upsert
+    suspend fun upsert(budget: BudgetEntity)
 
     @Insert
     suspend fun insertAll(budgets: List<BudgetEntity>)

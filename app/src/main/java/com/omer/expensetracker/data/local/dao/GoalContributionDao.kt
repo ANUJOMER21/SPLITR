@@ -3,6 +3,7 @@ package com.omer.expensetracker.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import androidx.room.Update
 import com.omer.expensetracker.data.local.entity.GoalContributionEntity
 
@@ -12,8 +13,14 @@ interface GoalContributionDao {
     @Query("SELECT * FROM goal_contributions WHERE goalId = :goalId AND isDeleted = 0 ORDER BY dateEpochDay DESC")
     suspend fun getForGoal(goalId: String): List<GoalContributionEntity>
 
+    @Query("SELECT * FROM goal_contributions WHERE id = :id")
+    suspend fun getById(id: String): GoalContributionEntity?
+
     @Insert
     suspend fun insert(contribution: GoalContributionEntity)
+
+    @Upsert
+    suspend fun upsert(contribution: GoalContributionEntity)
 
     @Insert
     suspend fun insertAll(contributions: List<GoalContributionEntity>)

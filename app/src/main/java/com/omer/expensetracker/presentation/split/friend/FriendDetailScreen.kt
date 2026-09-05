@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.SwapHoriz
@@ -51,6 +53,8 @@ import java.time.format.DateTimeFormatter
 fun FriendDetailScreen(
     onBack: () -> Unit,
     onSettleUp: (String) -> Unit,
+    onAddExpense: (friendId: String) -> Unit = {},
+    onEditExpense: (expenseId: String, groupId: String?) -> Unit = { _, _ -> },
     viewModel: FriendDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -94,7 +98,10 @@ fun FriendDetailScreen(
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 20.dp)) {
                 GlassButton(text = "Settle up", onClick = { onSettleUp(friend.id) }, icon = Icons.Filled.SwapHoriz, modifier = Modifier.weight(1f))
-                if (state.netMinor > 0L) {
+                GlassButton(text = "Add expense", onClick = { onAddExpense(friend.id) }, icon = Icons.Filled.Add, modifier = Modifier.weight(1f))
+            }
+            if (state.netMinor > 0L) {
+                Row(modifier = Modifier.padding(top = 10.dp)) {
                     GlassButton(text = "Remind", onClick = viewModel::sendSettlementReminder, icon = Icons.Filled.NotificationsActive, modifier = Modifier.weight(1f))
                 }
             }
@@ -108,44 +115,71 @@ fun FriendDetailScreen(
 
             Text("History", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 26.dp, bottom = 10.dp))
 
-            if (state.ledger.isEmpty()) {
+            if (state.sections.isEmpty()) {
                 EmptyState(title = "No history yet", subtitle = "Shared expenses and settlements with ${friend.name} show up here")
             } else {
                 LazyColumn(contentPadding = PaddingValues(vertical = 4.dp)) {
-                    items(state.ledger, key = {
-                        when (it) {
-                            is FriendLedgerEntry.ExpenseEntry -> "e:${it.expense.id}"
-                            is FriendLedgerEntry.SettlementEntry -> "s:${it.settlement.id}"
+                    state.sections.forEach { section ->
+                        item(key = "h:${section.groupId ?: "direct"}") {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(section.title, style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    netMinorLabel(section.netMinor),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = netMinorColor(section.netMinor)
+                                )
+                            }
                         }
-                    }) { entry ->
-                        ListItemCard(onClick = {}, modifier = Modifier.animateItem(), paddingValues = PaddingValues(vertical = 6.dp)) {
-                            when (entry) {
-                                is FriendLedgerEntry.ExpenseEntry -> {
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Text(entry.expense.description, style = MaterialTheme.typography.bodyLarge)
-                                        Text(entry.expense.amountMinor.formatAsCurrency(), style = MaterialTheme.typography.bodyLarge)
-                                    }
-                                    Text(
-                                        entry.expense.date.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(top = 2.dp)
-                                    )
-                                }
-                                is FriendLedgerEntry.SettlementEntry -> {
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        items(section.ledger, key = { entry ->
+                            val eid = when (entry) {
+                                is FriendLedgerEntry.ExpenseEntry -> "e:${entry.expense.id}"
+                                is FriendLedgerEntry.SettlementEntry -> "s:${entry.settlement.id}"
+                            }
+                            "${section.groupId ?: "direct"}|$eid"
+                        }) { entry ->
+                            val cardClick: () -> Unit = when (entry) {
+                                is FriendLedgerEntry.ExpenseEntry -> { { onEditExpense(entry.expense.id, entry.expense.groupId) } }
+                                is FriendLedgerEntry.SettlementEntry -> { {} }
+                            }
+                            ListItemCard(onClick = cardClick, modifier = Modifier.animateItem(), paddingValues = PaddingValues(vertical = 6.dp)) {
+                                when (entry) {
+                                    is FriendLedgerEntry.ExpenseEntry -> {
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                            Text(entry.expense.description, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                                            Text(entry.expense.amountMinor.formatAsCurrency(), style = MaterialTheme.typography.bodyLarge)
+                                            Icon(
+                                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                                contentDescription = "Edit expense",
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                                modifier = Modifier.padding(start = 4.dp)
+                                            )
+                                        }
                                         Text(
-                                            if (entry.settlement.payerFriendId == friend.id) "${friend.name} paid you" else "You paid ${friend.name}",
-                                            style = MaterialTheme.typography.bodyLarge
+                                            entry.expense.date.format(DateTimeFormatter.ofPattern("dd MMM yyyy")) + " · tap to edit",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(top = 2.dp)
                                         )
-                                        Text(entry.settlement.amountMinor.formatAsCurrency(), style = MaterialTheme.typography.bodyLarge)
                                     }
-                                    Text(
-                                        entry.settlement.date.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(top = 2.dp)
-                                    )
+                                    is FriendLedgerEntry.SettlementEntry -> {
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            Text(
+                                                if (entry.settlement.payerFriendId == friend.id) "${friend.name} paid you" else "You paid ${friend.name}",
+                                                style = MaterialTheme.typography.bodyLarge
+                                            )
+                                            Text(entry.settlement.amountMinor.formatAsCurrency(), style = MaterialTheme.typography.bodyLarge)
+                                        }
+                                        Text(
+                                            entry.settlement.date.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        )
+                                    }
                                 }
                             }
                         }

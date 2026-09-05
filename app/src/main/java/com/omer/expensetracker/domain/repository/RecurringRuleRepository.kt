@@ -28,4 +28,8 @@ interface RecurringRuleRepository {
     /** Rules due on or before [today] that are neither paused nor past their end date. */
     suspend fun getDueRules(today: LocalDate): List<RecurringRule>
     suspend fun recordGenerated(id: String, generatedDate: LocalDate, nextDueDate: LocalDate)
+
+    /** Cloud-sync-only merges from this account's Firestore backup. */
+    suspend fun upsertFromRemote(rule: RecurringRule)
+    suspend fun deleteFromRemote(id: String)
 }

@@ -18,6 +18,9 @@ interface SettlementDao {
     @Query("SELECT * FROM settlements WHERE id = :id")
     suspend fun getById(id: String): SettlementEntity?
 
+    @Query("SELECT * FROM settlements WHERE batchId = :batchId AND isDeleted = 0")
+    suspend fun getByBatch(batchId: String): List<SettlementEntity>
+
     @Insert
     suspend fun insert(settlement: SettlementEntity)
 

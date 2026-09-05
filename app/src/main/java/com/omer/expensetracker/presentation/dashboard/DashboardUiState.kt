@@ -15,6 +15,8 @@ data class DashboardUiState(
     val budgets: List<BudgetProgress> = emptyList(),
     val overallMoM: MonthOverMonthChange? = null,
     val sharedNetMinor: Long = 0L,
+    val sharedOwedToYouMinor: Long = 0L,
+    val sharedYouOweMinor: Long = 0L,
     val sharedFriendCount: Int = 0,
     val recentEntries: List<Entry> = emptyList(),
     val categoriesById: Map<String, Category> = emptyMap(),

@@ -48,6 +48,10 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
+    abstract fun bindSettingsRepository(impl: com.omer.expensetracker.data.repository.SettingsRepositoryImpl): com.omer.expensetracker.domain.repository.SettingsRepository
+
+    @Binds
+    @Singleton
     abstract fun bindCategoryRepository(impl: CategoryRepositoryImpl): CategoryRepository
 
     @Binds

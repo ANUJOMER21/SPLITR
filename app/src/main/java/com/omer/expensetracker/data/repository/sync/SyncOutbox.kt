@@ -11,6 +11,13 @@ object SyncEntityType {
     const val GROUP = "group"
     const val EXPENSE = "expense"
     const val SETTLEMENT = "settlement"
+
+    // Private per-account data — mirrored to users/{uid}/<collection>/{id}.
+    const val CATEGORY = "category"
+    const val ENTRY = "entry"
+    const val BUDGET = "budget"
+    const val RECURRING_RULE = "recurringRule"
+    const val GOAL = "goal"
 }
 
 object SyncOperation {

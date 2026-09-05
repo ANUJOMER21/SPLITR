@@ -56,7 +56,7 @@ import com.omer.expensetracker.data.local.entity.sync.SyncQueueEntity
         // Phase 5 cloud sync scaffold — see FeatureFlags.CLOUD_SYNC_ENABLED.
         SyncQueueEntity::class
     ],
-    version = 6,
+    version = 10,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {

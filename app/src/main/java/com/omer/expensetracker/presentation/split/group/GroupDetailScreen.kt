@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -127,6 +128,9 @@ private fun BalancesTab(state: GroupDetailUiState, onSettleUp: (friendId: String
                     Column(modifier = Modifier.weight(1f)) {
                         Text(member.friend.name, style = MaterialTheme.typography.bodyLarge)
                         Text(netMinorLabel(member.netMinor), style = MaterialTheme.typography.bodyMedium, color = netMinorColor(member.netMinor))
+                    }
+                    if (member.netMinor != 0L) {
+                        TextButton(onClick = { onSettleUp(member.friend.id) }) { Text("Settle up") }
                     }
                 }
             }

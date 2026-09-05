@@ -35,10 +35,10 @@ object DatabaseModule {
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, "expense_tracker.db")
             .addCallback(AppDatabase.SeedCallback)
-            // Pre-release app, no deployed user data yet — Phase 2's new tables land via a
-            // clean rebuild rather than a hand-written migration. Revisit before any real
-            // release: at that point this must become a real Migration(1, 2).
-            .fallbackToDestructiveMigration(true)
+            // Real hand-written migrations for every version bump (see Migrations.kt). Only a
+            // downgrade (installing an older build over a newer DB) falls back to a wipe.
+            .addMigrations(*com.omer.expensetracker.data.local.ALL_MIGRATIONS)
+            .fallbackToDestructiveMigrationOnDowngrade(true)
             .build()
 
     @Provides

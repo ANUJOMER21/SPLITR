@@ -12,8 +12,11 @@ data class Entry(
     val amountMinor: Long,
     val categoryId: String?,
     val date: LocalDate,
+    val note: String? = null,
+    val photoUri: String? = null,
     val createdAt: Long,
     val updatedAt: Long,
     val isDeleted: Boolean = false,
-    val linkedSharedExpenseId: String? = null
+    val linkedSharedExpenseId: String? = null,
+    val linkedGoalContributionId: String? = null
 )

@@ -80,13 +80,18 @@ fun EntryListRow(
                 }
             }
 
+            val label = if (entry.type == EntryType.EXPENSE) (category?.name ?: "Other") else "Income"
+            val note = entry.note?.takeIf { it.isNotBlank() }
+            val dateText = entry.date.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (entry.type == EntryType.EXPENSE) (category?.name ?: "Other") else "Income",
-                    style = MaterialTheme.typography.bodyLarge
+                    text = note ?: label,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
                 Text(
-                    text = entry.date.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
+                    text = if (note != null) "$label · $dateText" else dateText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

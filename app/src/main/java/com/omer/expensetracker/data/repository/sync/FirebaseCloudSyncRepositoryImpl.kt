@@ -11,6 +11,12 @@ import com.omer.expensetracker.domain.model.split.Friend
 import com.omer.expensetracker.domain.model.split.YOU_FRIEND_ID
 import com.omer.expensetracker.domain.model.sync.SyncState
 import com.omer.expensetracker.domain.model.sync.SyncStatus
+import com.omer.expensetracker.domain.repository.BudgetRepository
+import com.omer.expensetracker.domain.repository.CategoryRepository
+import com.omer.expensetracker.domain.repository.EntryRepository
+import com.omer.expensetracker.domain.repository.RecurringRuleRepository
+import com.omer.expensetracker.domain.repository.SavingsGoalRepository
+import com.omer.expensetracker.domain.model.EntryFilter
 import com.omer.expensetracker.domain.repository.split.FriendRepository
 import com.omer.expensetracker.domain.repository.split.GroupRepository
 import com.omer.expensetracker.domain.repository.split.SettlementRepository
@@ -44,6 +50,11 @@ class FirebaseCloudSyncRepositoryImpl @Inject constructor(
     private val groupRepository: GroupRepository,
     private val sharedExpenseRepository: SharedExpenseRepository,
     private val settlementRepository: SettlementRepository,
+    private val categoryRepository: CategoryRepository,
+    private val entryRepository: EntryRepository,
+    private val budgetRepository: BudgetRepository,
+    private val recurringRuleRepository: RecurringRuleRepository,
+    private val savingsGoalRepository: SavingsGoalRepository,
     private val deviceIdProvider: DeviceIdProvider
 ) : CloudSyncRepository {
 
@@ -63,6 +74,14 @@ class FirebaseCloudSyncRepositoryImpl @Inject constructor(
         groupRepository.observeAllGroups().first().forEach { syncQueueDao.enqueue(outboxRow(SyncEntityType.GROUP, it.id)) }
         sharedExpenseRepository.observeAll().first().forEach { syncQueueDao.enqueue(outboxRow(SyncEntityType.EXPENSE, it.id)) }
         settlementRepository.observeAll().first().forEach { syncQueueDao.enqueue(outboxRow(SyncEntityType.SETTLEMENT, it.id)) }
+        // Private per-account data.
+        categoryRepository.observeAllCategories().first().forEach { syncQueueDao.enqueue(outboxRow(SyncEntityType.CATEGORY, it.id)) }
+        entryRepository.observeFilteredEntries(EntryFilter()).first()
+            .filter { it.linkedSharedExpenseId == null && it.linkedGoalContributionId == null }
+            .forEach { syncQueueDao.enqueue(outboxRow(SyncEntityType.ENTRY, it.id)) }
+        budgetRepository.getAllBudgets().forEach { syncQueueDao.enqueue(outboxRow(SyncEntityType.BUDGET, it.id)) }
+        recurringRuleRepository.observeAll().first().forEach { syncQueueDao.enqueue(outboxRow(SyncEntityType.RECURRING_RULE, it.id)) }
+        savingsGoalRepository.observeGoals().first().forEach { syncQueueDao.enqueue(outboxRow(SyncEntityType.GOAL, it.goal.id)) }
     }
 
     override suspend fun syncNow() {
@@ -133,15 +152,96 @@ class FirebaseCloudSyncRepositoryImpl @Inject constructor(
                         "payerKey" to participantKey(uid, settlement.payerFriendId),
                         "receiverKey" to participantKey(uid, settlement.receiverFriendId),
                         "amountMinor" to settlement.amountMinor, "dateEpochDay" to settlement.date.toEpochDay(),
-                        "note" to settlement.note, "groupId" to settlement.groupId,
+                        "note" to settlement.note, "groupId" to settlement.groupId, "batchId" to settlement.batchId,
                         "memberUids" to memberUids, "memberMeta" to memberMeta,
                         "lastEditedByDeviceId" to deviceIdProvider.deviceId, "lastEditedByUid" to uid,
                         "createdAt" to settlement.createdAt, "updatedAt" to settlement.updatedAt
                     )
                 ).await()
             }
+            SyncEntityType.CATEGORY -> {
+                val doc = personalDoc(uid, "categories", entry.entityId)
+                if (entry.operation == SyncOperation.DELETE) { doc.delete().await(); return }
+                val c = categoryRepository.getCategory(entry.entityId) ?: return
+                doc.set(
+                    mapOf(
+                        "name" to c.name, "iconKey" to c.iconKey, "colorArgb" to c.colorArgb,
+                        "isDefault" to c.isDefault, "isActive" to c.isActive,
+                        "lastEditedByDeviceId" to deviceIdProvider.deviceId,
+                        "createdAt" to c.createdAt, "updatedAt" to c.updatedAt
+                    )
+                ).await()
+            }
+            SyncEntityType.ENTRY -> {
+                val doc = personalDoc(uid, "entries", entry.entityId)
+                if (entry.operation == SyncOperation.DELETE) { doc.delete().await(); return }
+                val e = entryRepository.getEntry(entry.entityId) ?: return
+                if (e.linkedSharedExpenseId != null || e.linkedGoalContributionId != null) return
+                doc.set(
+                    mapOf(
+                        "type" to e.type.name, "amountMinor" to e.amountMinor, "categoryId" to e.categoryId,
+                        "dateEpochDay" to e.date.toEpochDay(), "note" to e.note, "photoUri" to e.photoUri,
+                        "lastEditedByDeviceId" to deviceIdProvider.deviceId,
+                        "createdAt" to e.createdAt, "updatedAt" to e.updatedAt
+                    )
+                ).await()
+            }
+            SyncEntityType.BUDGET -> {
+                val doc = personalDoc(uid, "budgets", entry.entityId)
+                if (entry.operation == SyncOperation.DELETE) { doc.delete().await(); return }
+                val b = budgetRepository.getBudget(entry.entityId) ?: return
+                doc.set(
+                    mapOf(
+                        "categoryId" to b.categoryId, "monthlyLimitMinor" to b.monthlyLimitMinor,
+                        "warningNotifiedMonth" to b.warningNotifiedMonth, "breachNotifiedMonth" to b.breachNotifiedMonth,
+                        "lastEditedByDeviceId" to deviceIdProvider.deviceId,
+                        "createdAt" to b.createdAt, "updatedAt" to b.updatedAt
+                    )
+                ).await()
+            }
+            SyncEntityType.RECURRING_RULE -> {
+                val doc = personalDoc(uid, "recurringRules", entry.entityId)
+                if (entry.operation == SyncOperation.DELETE) { doc.delete().await(); return }
+                val r = recurringRuleRepository.getById(entry.entityId) ?: return
+                doc.set(
+                    mapOf(
+                        "type" to r.type.name, "amountMinor" to r.amountMinor, "categoryId" to r.categoryId,
+                        "unit" to r.unit.name, "intervalCount" to r.intervalCount,
+                        "startDateEpochDay" to r.startDate.toEpochDay(),
+                        "endDateEpochDay" to r.endDate?.toEpochDay(),
+                        "lastGeneratedDateEpochDay" to r.lastGeneratedDate?.toEpochDay(),
+                        "nextDueDateEpochDay" to r.nextDueDate.toEpochDay(),
+                        "isPaused" to r.isPaused, "skipNextOccurrence" to r.skipNextOccurrence,
+                        "lastEditedByDeviceId" to deviceIdProvider.deviceId,
+                        "createdAt" to r.createdAt, "updatedAt" to r.updatedAt
+                    )
+                ).await()
+            }
+            SyncEntityType.GOAL -> {
+                val doc = personalDoc(uid, "goals", entry.entityId)
+                if (entry.operation == SyncOperation.DELETE) { doc.delete().await(); return }
+                val detail = savingsGoalRepository.observeGoal(entry.entityId).first() ?: return
+                doc.set(
+                    mapOf(
+                        "name" to detail.goal.name, "targetAmountMinor" to detail.goal.targetAmountMinor,
+                        "targetDateEpochDay" to detail.goal.targetDate?.toEpochDay(),
+                        "isCompleted" to detail.goal.isCompleted,
+                        "contributions" to detail.contributions.map {
+                            mapOf(
+                                "id" to it.id, "amountMinor" to it.amountMinor, "dateEpochDay" to it.date.toEpochDay(),
+                                "createdAt" to it.createdAt, "updatedAt" to it.updatedAt
+                            )
+                        },
+                        "lastEditedByDeviceId" to deviceIdProvider.deviceId,
+                        "createdAt" to detail.goal.createdAt, "updatedAt" to detail.goal.updatedAt
+                    )
+                ).await()
+            }
         }
     }
+
+    private fun personalDoc(uid: String, collection: String, docId: String) =
+        firestore.collection("users").document(uid).collection(collection).document(docId)
 
     /** A local friend id becomes their real uid once linked, or a per-owner synthetic key
      * ("local:<myUid>:<friendId>") while they're still local-only — see [Friend.linkedUserId]. */

@@ -8,6 +8,7 @@ import com.omer.expensetracker.domain.model.split.SharedExpense
 import com.omer.expensetracker.domain.model.split.Settlement
 import com.omer.expensetracker.domain.repository.split.BalanceRepository
 import com.omer.expensetracker.domain.repository.split.FriendRepository
+import com.omer.expensetracker.domain.repository.split.GroupRepository
 import com.omer.expensetracker.domain.repository.split.SettlementRepository
 import com.omer.expensetracker.domain.repository.split.SharedExpenseRepository
 import com.omer.expensetracker.domain.repository.sync.ReminderRepository
@@ -31,10 +32,19 @@ sealed interface FriendLedgerEntry {
     }
 }
 
+/** The friend's history for one group (or the non-group "direct" bucket when [groupId] is null),
+ * with the net balance scoped to just that bucket. */
+data class FriendGroupSection(
+    val groupId: String?,
+    val title: String,
+    val netMinor: Long,
+    val ledger: List<FriendLedgerEntry>
+)
+
 data class FriendDetailUiState(
     val friend: Friend? = null,
     val netMinor: Long = 0L,
-    val ledger: List<FriendLedgerEntry> = emptyList(),
+    val sections: List<FriendGroupSection> = emptyList(),
     val reminderSent: Boolean = false,
     val reminderError: String? = null,
     val isLoading: Boolean = true
@@ -48,6 +58,7 @@ class FriendDetailViewModel @Inject constructor(
     balanceRepository: BalanceRepository,
     settlementRepository: SettlementRepository,
     sharedExpenseRepository: SharedExpenseRepository,
+    groupRepository: GroupRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -66,11 +77,12 @@ class FriendDetailViewModel @Inject constructor(
         settlementRepository.observeForFriend(friendId),
         sharedExpenseRepository.observeForFriend(friendId),
         reminderSent,
-        reminderError
+        reminderError,
+        balanceRepository.observeFriendBalances(friendId),
+        groupRepository.observeAllGroups()
     ) { values ->
         @Suppress("UNCHECKED_CAST")
         val f = values[0] as Friend?
-        @Suppress("UNCHECKED_CAST")
         val net = values[1] as Long
         @Suppress("UNCHECKED_CAST")
         val settlements = values[2] as List<Settlement>
@@ -78,13 +90,47 @@ class FriendDetailViewModel @Inject constructor(
         val friendExpenses = values[3] as List<SharedExpense>
         val sent = values[4] as Boolean
         val error = values[5] as String?
+        @Suppress("UNCHECKED_CAST")
+        val friendBalances = values[6] as List<com.omer.expensetracker.domain.model.split.Balance>
+        @Suppress("UNCHECKED_CAST")
+        val groups = values[7] as List<com.omer.expensetracker.domain.model.split.FriendGroup>
 
         val ledger = buildList<FriendLedgerEntry> {
             settlements.forEach { add(FriendLedgerEntry.SettlementEntry(it)) }
             friendExpenses.forEach { add(FriendLedgerEntry.ExpenseEntry(it)) }
         }.sortedByDescending { it.timestampMillis }
 
-        FriendDetailUiState(friend = f, netMinor = net, ledger = ledger, reminderSent = sent, reminderError = error, isLoading = false)
+        val nameByGroupId = groups.associate { it.id to it.name }
+        val netByGroupId = friendBalances.filter { it.groupId != null }.associate { it.groupId to it.netMinor }
+        val directNet = net - netByGroupId.values.sum()
+
+        val ledgerByGroupId: Map<String?, List<FriendLedgerEntry>> = ledger.groupBy {
+            when (it) {
+                is FriendLedgerEntry.ExpenseEntry -> it.expense.groupId
+                is FriendLedgerEntry.SettlementEntry -> it.settlement.groupId
+            }
+        }
+
+        val sectionGroupIds: Set<String?> = buildSet {
+            addAll(ledgerByGroupId.keys)
+            netByGroupId.forEach { (gid, n) -> if (n != 0L) add(gid) }
+            if (directNet != 0L) add(null)
+        }
+
+        val sections = sectionGroupIds.map { gid ->
+            FriendGroupSection(
+                groupId = gid,
+                title = gid?.let { nameByGroupId[it] ?: "Group" } ?: "Non-group expenses",
+                netMinor = if (gid == null) directNet else (netByGroupId[gid] ?: 0L),
+                ledger = ledgerByGroupId[gid].orEmpty()
+            )
+        }.sortedWith(
+            compareByDescending<FriendGroupSection> { it.netMinor != 0L }
+                .thenByDescending { kotlin.math.abs(it.netMinor) }
+                .thenBy { it.title }
+        )
+
+        FriendDetailUiState(friend = f, netMinor = net, sections = sections, reminderSent = sent, reminderError = error, isLoading = false)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), FriendDetailUiState())
 
     fun deleteFriend(onDone: () -> Unit) {

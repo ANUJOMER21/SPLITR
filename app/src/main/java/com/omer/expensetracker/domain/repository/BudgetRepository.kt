@@ -19,4 +19,8 @@ interface BudgetRepository {
 
     /** All active (non-deleted) budgets, for the background threshold-check job. */
     suspend fun getAllBudgets(): List<Budget>
+
+    /** Cloud-sync-only merges from this account's Firestore backup. */
+    suspend fun upsertFromRemote(budget: Budget)
+    suspend fun deleteFromRemote(id: String)
 }

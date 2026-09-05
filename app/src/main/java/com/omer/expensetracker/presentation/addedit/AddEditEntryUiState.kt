@@ -10,6 +10,8 @@ data class AddEditEntryUiState(
     val amountText: String = "",
     val categoryId: String? = null,
     val date: LocalDate = LocalDate.now(),
+    val note: String = "",
+    val photoUri: String? = null,
     val categories: List<Category> = emptyList(),
     val errorMessage: String? = null,
     val isLoading: Boolean = true,

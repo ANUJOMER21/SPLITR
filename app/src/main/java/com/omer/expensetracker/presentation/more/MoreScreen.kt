@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PeopleAlt
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,9 +35,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -74,8 +77,19 @@ fun MoreScreen(
     onCategories: () -> Unit,
     onFriends: () -> Unit = {},
     onGroups: () -> Unit = {},
-    onAccount: () -> Unit = {}
+    onAccount: () -> Unit = {},
+    onSettings: () -> Unit = {},
+    viewModel: MoreViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val seedResult by viewModel.seedResult.collectAsState()
+    LaunchedEffect(seedResult) {
+        seedResult?.let {
+            android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_LONG).show()
+            viewModel.consumeSeedResult()
+        }
+    }
+
     var badgeCounter = 0
     val rows = buildList {
         add(MoreRow.SectionHeader("Manage"))
@@ -89,10 +103,14 @@ fun MoreScreen(
             add(MoreRow.SectionHeader("Split with friends"))
             add(MoreRow.Entry(MoreItem("Friends", "Track shared expenses and balances", Icons.Filled.PeopleAlt, onFriends), badgeCounter++))
             add(MoreRow.Entry(MoreItem("Groups", "Split expenses with a trip, household, or team", Icons.Filled.Groups, onGroups), badgeCounter++))
+            if (FeatureFlags.SPLIT_SAMPLE_DATA_SEED) {
+                add(MoreRow.Entry(MoreItem("Load sample split data", "Seed friends, groups and shared expenses for testing", Icons.Filled.Autorenew) { viewModel.seedSampleSplitData() }, badgeCounter++))
+            }
         }
 
         add(MoreRow.SectionHeader("Data"))
         add(MoreRow.Entry(MoreItem("Backup & restore", "Export or import all your data", Icons.Filled.CloudSync, onBackup), badgeCounter++))
+        add(MoreRow.Entry(MoreItem("Settings", "Onboarding, reset app data", Icons.Filled.Tune, onSettings), badgeCounter++))
     }
 
     Scaffold(

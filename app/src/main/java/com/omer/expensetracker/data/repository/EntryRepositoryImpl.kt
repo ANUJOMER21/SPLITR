@@ -1,8 +1,12 @@
 package com.omer.expensetracker.data.repository
 
+import com.omer.expensetracker.data.local.dao.CategoryDao
 import com.omer.expensetracker.data.local.dao.EntryDao
 import com.omer.expensetracker.data.mapper.toDomain
 import com.omer.expensetracker.data.mapper.toEntity
+import com.omer.expensetracker.data.repository.sync.SyncEntityType
+import com.omer.expensetracker.data.repository.sync.SyncOperation
+import com.omer.expensetracker.data.repository.sync.SyncOutbox
 import com.omer.expensetracker.domain.model.CategoryBreakdownItem
 import com.omer.expensetracker.domain.model.Entry
 import com.omer.expensetracker.domain.model.EntryFilter
@@ -17,6 +21,8 @@ import javax.inject.Inject
 
 class EntryRepositoryImpl @Inject constructor(
     private val entryDao: EntryDao,
+    private val categoryDao: CategoryDao,
+    private val syncOutbox: SyncOutbox,
     private val widgetRefresher: WidgetRefresher
 ) : EntryRepository {
 
@@ -27,23 +33,48 @@ class EntryRepositoryImpl @Inject constructor(
 
     override suspend fun addEntry(entry: Entry): Entry {
         entryDao.insert(entry.toEntity())
+        enqueueIfSyncable(entry, SyncOperation.UPSERT)
         widgetRefresher.refreshAll()
         return entry
     }
 
     override suspend fun updateEntry(entry: Entry) {
         entryDao.update(entry.toEntity())
+        enqueueIfSyncable(entry, SyncOperation.UPSERT)
         widgetRefresher.refreshAll()
     }
 
     override suspend fun softDeleteEntry(id: String) {
+        val existing = entryDao.getById(id)
         entryDao.softDelete(id, System.currentTimeMillis())
+        if (existing != null) enqueueIfSyncable(existing.toDomain(), SyncOperation.DELETE)
         widgetRefresher.refreshAll()
     }
 
     override suspend fun restoreEntry(id: String) {
         entryDao.restore(id, System.currentTimeMillis())
+        entryDao.getById(id)?.let { enqueueIfSyncable(it.toDomain(), SyncOperation.UPSERT) }
         widgetRefresher.refreshAll()
+    }
+
+    override suspend fun upsertFromRemote(entry: Entry) {
+        val existing = entryDao.getById(entry.id)
+        if (existing != null && existing.updatedAt >= entry.updatedAt) return
+        // A category that hasn't synced yet must not break the FK — drop the reference; the
+        // category listener fills it in later and a subsequent entry edit re-links it.
+        val safeCategoryId = entry.categoryId?.takeIf { categoryDao.getById(it) != null }
+        entryDao.upsert(entry.copy(categoryId = safeCategoryId).toEntity())
+        widgetRefresher.refreshAll()
+    }
+
+    override suspend fun deleteFromRemote(id: String) {
+        entryDao.softDelete(id, System.currentTimeMillis())
+        widgetRefresher.refreshAll()
+    }
+
+    private suspend fun enqueueIfSyncable(entry: Entry, operation: String) {
+        if (entry.linkedSharedExpenseId != null || entry.linkedGoalContributionId != null) return
+        syncOutbox.enqueue(SyncEntityType.ENTRY, entry.id, operation)
     }
 
     override fun observeMonthlySummary(month: YearMonth): Flow<MonthlySummary> {

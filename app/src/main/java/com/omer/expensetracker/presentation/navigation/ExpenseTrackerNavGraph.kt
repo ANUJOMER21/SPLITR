@@ -111,7 +111,21 @@ fun ExpenseTrackerNavGraph(navController: NavHostController = rememberNavControl
         composable(Screen.Splash.route) {
             SplashScreen(
                 onSignedIn = { navController.navigate(Screen.Dashboard.route) { popUpTo(0) { inclusive = true } } },
-                onSignedOut = { navController.navigate(Screen.SignIn.route) { popUpTo(0) { inclusive = true } } }
+                onSignedOut = { navController.navigate(Screen.SignIn.route) { popUpTo(0) { inclusive = true } } },
+                onNeedsOnboarding = { navController.navigate(Screen.Onboarding.route) { popUpTo(0) { inclusive = true } } }
+            )
+        }
+
+        composable(Screen.Onboarding.route) {
+            com.omer.expensetracker.presentation.onboarding.OnboardingScreen(
+                onFinished = { navController.navigate(Screen.Splash.route) { popUpTo(0) { inclusive = true } } }
+            )
+        }
+
+        composable(Screen.Settings.route) {
+            com.omer.expensetracker.presentation.settings.SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onReplayOnboarding = { navController.navigate(Screen.Onboarding.route) { popUpTo(0) { inclusive = true } } }
             )
         }
 
@@ -186,7 +200,8 @@ fun ExpenseTrackerNavGraph(navController: NavHostController = rememberNavControl
                 onCategories = { navController.navigate(Screen.ManageCategories.route) },
                 onFriends = { navController.navigate(Screen.Friends.route) },
                 onGroups = { navController.navigate(Screen.Groups.route) },
-                onAccount = { navController.navigate(Screen.Account.route) }
+                onAccount = { navController.navigate(Screen.Account.route) },
+                onSettings = { navController.navigate(Screen.Settings.route) }
             )
         }
 
@@ -195,6 +210,15 @@ fun ExpenseTrackerNavGraph(navController: NavHostController = rememberNavControl
         }
 
         // ---- Split With Friends (Phase 3) — see FeatureFlags.SPLIT_WITH_FRIENDS_ENABLED ----
+
+        composable(Screen.SplitHome.route) {
+            com.omer.expensetracker.presentation.split.SplitHomeScreen(
+                onOpenFriend = { id -> navController.navigate(Screen.FriendDetail.route(id)) },
+                onAddFriend = { navController.navigate(Screen.AddEditFriend.route) },
+                onOpenGroup = { id -> navController.navigate(Screen.GroupDetail.route(id)) },
+                onAddGroup = { navController.navigate(Screen.AddEditGroup.route) }
+            )
+        }
 
         composable(Screen.Friends.route) {
             FriendsScreen(
@@ -214,7 +238,9 @@ fun ExpenseTrackerNavGraph(navController: NavHostController = rememberNavControl
         ) {
             FriendDetailScreen(
                 onBack = { navController.popBackStack() },
-                onSettleUp = { friendId -> navController.navigate(Screen.SettleUp.route(friendId)) }
+                onSettleUp = { friendId -> navController.navigate(Screen.SettleUp.route(friendId)) },
+                onAddExpense = { friendId -> navController.navigate(Screen.AddSharedExpense.route(friendId = friendId)) },
+                onEditExpense = { expenseId, groupId -> navController.navigate(Screen.AddSharedExpense.route(expenseId = expenseId, groupId = groupId)) }
             )
         }
 
@@ -240,8 +266,8 @@ fun ExpenseTrackerNavGraph(navController: NavHostController = rememberNavControl
         ) {
             GroupDetailScreen(
                 onBack = { navController.popBackStack() },
-                onAddExpense = { groupId -> navController.navigate(Screen.AddSharedExpense.route(groupId)) },
-                onEditExpense = { groupId, expenseId -> navController.navigate(Screen.AddSharedExpense.route(groupId, expenseId)) },
+                onAddExpense = { groupId -> navController.navigate(Screen.AddSharedExpense.route(groupId = groupId)) },
+                onEditExpense = { groupId, expenseId -> navController.navigate(Screen.AddSharedExpense.route(expenseId = expenseId, groupId = groupId)) },
                 onSimplify = { groupId -> navController.navigate(Screen.SimplifyDebts.route(groupId)) },
                 onSettleUpWithFriend = { friendId, groupId ->
                     navController.navigate(Screen.SettleUp.route(friendId = friendId, groupId = groupId))
@@ -252,8 +278,9 @@ fun ExpenseTrackerNavGraph(navController: NavHostController = rememberNavControl
         composable(
             route = Screen.AddSharedExpense.route,
             arguments = listOf(
-                navArgument("groupId") { type = NavType.StringType },
-                navArgument("expenseId") { type = NavType.StringType; defaultValue = NEW_ID }
+                navArgument("expenseId") { type = NavType.StringType; defaultValue = NEW_ID },
+                navArgument("groupId") { type = NavType.StringType; nullable = true; defaultValue = "" },
+                navArgument("friendId") { type = NavType.StringType; nullable = true; defaultValue = "" }
             )
         ) {
             AddSharedExpenseScreen(onDone = { navController.popBackStack() }, onBack = { navController.popBackStack() })

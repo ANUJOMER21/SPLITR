@@ -36,7 +36,7 @@ fun SharedExpenseEntity.toDomain() = SharedExpense(
 fun SettlementEntity.toDomain() = Settlement(
     id = id, payerFriendId = payerFriendId, receiverFriendId = receiverFriendId,
     amountMinor = amountMinor, date = LocalDate.ofEpochDay(dateEpochDay), note = note,
-    groupId = groupId, createdAt = createdAt, updatedAt = updatedAt, isDeleted = isDeleted
+    groupId = groupId, batchId = batchId, createdAt = createdAt, updatedAt = updatedAt, isDeleted = isDeleted
 )
 
 fun ActivityLogEntity.toDomain() = ActivityLogEntry(

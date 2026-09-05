@@ -28,6 +28,8 @@ private const val KEY_AMOUNT = "amountText"
 private const val KEY_CATEGORY = "categoryId"
 private const val KEY_DATE = "dateEpochDay"
 private const val KEY_TYPE = "type"
+private const val KEY_NOTE = "note"
+private const val KEY_PHOTO = "photoUri"
 private const val KEY_CREATED_AT = "createdAt"
 private const val KEY_INITIALIZED = "initialized"
 
@@ -35,7 +37,9 @@ private data class FormFields(
     val amountText: String,
     val categoryId: String?,
     val dateEpochDay: Long,
-    val type: String
+    val type: String,
+    val note: String,
+    val photoUri: String?
 )
 
 @HiltViewModel
@@ -58,13 +62,24 @@ class AddEditEntryViewModel @Inject constructor(
         KEY_TYPE,
         savedStateHandle.get<String>("type") ?: EntryType.EXPENSE.name
     )
+    private val note = savedStateHandle.getStateFlow(KEY_NOTE, "")
+    private val photoUri = savedStateHandle.getStateFlow<String?>(KEY_PHOTO, null)
 
     private val errorFlow = MutableStateFlow<String?>(null)
     private val savedFlow = MutableStateFlow(false)
     private val loadingFlow = MutableStateFlow(isEditing)
 
-    private val formFlow = combine(amountText, categoryId, dateEpochDay, type) { amt, cat, day, t ->
-        FormFields(amt, cat, day, t)
+    private val formFlow = combine(
+        listOf(amountText, categoryId, dateEpochDay, type, note, photoUri)
+    ) { v ->
+        FormFields(
+            amountText = v[0] as String,
+            categoryId = v[1] as String?,
+            dateEpochDay = v[2] as Long,
+            type = v[3] as String,
+            note = v[4] as String,
+            photoUri = v[5] as String?
+        )
     }
 
     init {
@@ -93,6 +108,8 @@ class AddEditEntryViewModel @Inject constructor(
             amountText = form.amountText,
             categoryId = form.categoryId,
             date = LocalDate.ofEpochDay(form.dateEpochDay),
+            note = form.note,
+            photoUri = form.photoUri,
             categories = categories,
             errorMessage = error,
             isLoading = loading,
@@ -105,7 +122,17 @@ class AddEditEntryViewModel @Inject constructor(
         savedStateHandle[KEY_CATEGORY] = entry.categoryId
         savedStateHandle[KEY_DATE] = entry.date.toEpochDay()
         savedStateHandle[KEY_TYPE] = entry.type.name
+        savedStateHandle[KEY_NOTE] = entry.note.orEmpty()
+        savedStateHandle[KEY_PHOTO] = entry.photoUri
         savedStateHandle[KEY_CREATED_AT] = entry.createdAt
+    }
+
+    fun onNoteChange(value: String) {
+        savedStateHandle[KEY_NOTE] = value
+    }
+
+    fun onPhotoChange(uri: String?) {
+        savedStateHandle[KEY_PHOTO] = uri
     }
 
     fun onAmountChange(value: String) {
@@ -123,7 +150,9 @@ class AddEditEntryViewModel @Inject constructor(
     }
 
     fun save() {
-        val form = FormFields(amountText.value, categoryId.value, dateEpochDay.value, type.value)
+        val form = FormFields(amountText.value, categoryId.value, dateEpochDay.value, type.value, note.value, photoUri.value)
+        val noteValue = form.note.trim().ifBlank { null }
+        val photoValue = form.photoUri?.ifBlank { null }
         val currentType = EntryType.valueOf(form.type)
         val amountMinor = form.amountText.parseAmountToMinorUnits()
         if (amountMinor == null) {
@@ -145,14 +174,16 @@ class AddEditEntryViewModel @Inject constructor(
                         amountMinor = amountMinor,
                         categoryId = if (currentType == EntryType.EXPENSE) form.categoryId else null,
                         date = date,
+                        note = noteValue,
+                        photoUri = photoValue,
                         createdAt = savedStateHandle[KEY_CREATED_AT] ?: System.currentTimeMillis(),
                         updatedAt = System.currentTimeMillis()
                     )
                 )
             } else if (currentType == EntryType.EXPENSE) {
-                addExpenseUseCase(amountMinor, form.categoryId, date).toUnitResult()
+                addExpenseUseCase(amountMinor, form.categoryId, date, noteValue, photoValue).toUnitResult()
             } else {
-                addIncomeUseCase(amountMinor, date).toUnitResult()
+                addIncomeUseCase(amountMinor, date, noteValue, photoValue).toUnitResult()
             }
 
             when (result) {

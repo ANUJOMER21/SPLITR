@@ -42,11 +42,13 @@ internal object EntryFilterQueryBuilder {
             where.append(
                 """
                  AND (
-                    entries.categoryId IN (SELECT id FROM categories WHERE name LIKE ? COLLATE NOCASE)
+                    entries.note LIKE ? COLLATE NOCASE
+                    OR entries.categoryId IN (SELECT id FROM categories WHERE name LIKE ? COLLATE NOCASE)
                     OR CAST(entries.amountMinor / 100.0 AS TEXT) LIKE ?
                  )
                 """.trimIndent()
             )
+            args.add("%$query%")
             args.add("%$query%")
             args.add("%$query%")
         }

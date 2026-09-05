@@ -3,6 +3,7 @@ package com.omer.expensetracker.presentation.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.omer.expensetracker.FeatureFlags
+import com.omer.expensetracker.domain.repository.SettingsRepository
 import com.omer.expensetracker.domain.repository.sync.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -16,7 +17,8 @@ import kotlinx.coroutines.flow.stateIn
  * graph's sign-out guard can both wait for a real answer instead of flashing the wrong screen. */
 @HiltViewModel
 class AuthGateViewModel @Inject constructor(
-    authRepository: AuthRepository
+    authRepository: AuthRepository,
+    settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     val isSignedIn: StateFlow<Boolean?> = if (FeatureFlags.CLOUD_SYNC_ENABLED) {
@@ -25,4 +27,8 @@ class AuthGateViewModel @Inject constructor(
     } else {
         kotlinx.coroutines.flow.MutableStateFlow(true)
     }
+
+    /** `null` while still loading — the splash waits for a definite answer. */
+    val onboardingComplete: StateFlow<Boolean?> = settingsRepository.onboardingComplete
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 }

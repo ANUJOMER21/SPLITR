@@ -15,4 +15,7 @@ interface CategoryRepository {
 
     /** Reassigns every entry referencing [id] to [OTHER_CATEGORY_ID], then deactivates it. */
     suspend fun deleteCustomCategory(id: String)
+
+    /** Cloud-sync-only: merge a category pulled from this account's Firestore backup. */
+    suspend fun upsertFromRemote(category: Category)
 }

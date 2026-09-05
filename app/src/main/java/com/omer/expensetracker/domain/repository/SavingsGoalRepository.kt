@@ -18,4 +18,9 @@ interface SavingsGoalRepository {
     suspend fun addContribution(goalId: String, amountMinor: Long, date: LocalDate): GoalContribution
     suspend fun updateContribution(contribution: GoalContribution)
     suspend fun deleteContribution(id: String)
+
+    /** Cloud-sync-only: merge a goal (with its full contribution list) from this account's
+     * Firestore backup. Goals sync as one aggregate document to avoid parent/child ordering. */
+    suspend fun upsertFromRemote(detail: SavingsGoalDetail)
+    suspend fun deleteFromRemote(id: String)
 }

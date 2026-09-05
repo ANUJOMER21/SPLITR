@@ -8,6 +8,9 @@ import com.omer.expensetracker.domain.model.Category
 import com.omer.expensetracker.domain.model.CategoryWithTotal
 import com.omer.expensetracker.domain.model.OTHER_CATEGORY_ID
 import com.omer.expensetracker.domain.repository.CategoryRepository
+import com.omer.expensetracker.data.repository.sync.SyncEntityType
+import com.omer.expensetracker.data.repository.sync.SyncOperation
+import com.omer.expensetracker.data.repository.sync.SyncOutbox
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.YearMonth
@@ -16,7 +19,8 @@ import javax.inject.Inject
 
 class CategoryRepositoryImpl @Inject constructor(
     private val categoryDao: CategoryDao,
-    private val entryDao: EntryDao
+    private val entryDao: EntryDao,
+    private val syncOutbox: SyncOutbox
 ) : CategoryRepository {
 
     override fun observeActiveCategories(): Flow<List<Category>> =
@@ -49,20 +53,31 @@ class CategoryRepositoryImpl @Inject constructor(
             updatedAt = now
         )
         categoryDao.insert(category.toEntity())
+        syncOutbox.enqueue(SyncEntityType.CATEGORY, category.id, SyncOperation.UPSERT)
         return category
     }
 
     override suspend fun updateCategory(category: Category) {
         categoryDao.update(category.toEntity())
+        syncOutbox.enqueue(SyncEntityType.CATEGORY, category.id, SyncOperation.UPSERT)
     }
 
     override suspend fun setCategoryActive(id: String, isActive: Boolean) {
         categoryDao.setActive(id, isActive, System.currentTimeMillis())
+        syncOutbox.enqueue(SyncEntityType.CATEGORY, id, SyncOperation.UPSERT)
     }
 
     override suspend fun deleteCustomCategory(id: String) {
         val now = System.currentTimeMillis()
         entryDao.reassignCategory(categoryId = id, fallbackCategoryId = OTHER_CATEGORY_ID, updatedAt = now)
         categoryDao.setActive(id, isActive = false, updatedAt = now)
+        syncOutbox.enqueue(SyncEntityType.CATEGORY, id, SyncOperation.UPSERT)
+    }
+
+    override suspend fun upsertFromRemote(category: Category) {
+        val existing = categoryDao.getById(category.id)
+        // Last-write-wins: ignore an older remote copy.
+        if (existing != null && existing.updatedAt >= category.updatedAt) return
+        categoryDao.upsert(category.toEntity())
     }
 }

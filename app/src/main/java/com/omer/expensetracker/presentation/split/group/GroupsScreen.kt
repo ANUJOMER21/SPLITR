@@ -53,6 +53,8 @@ fun GroupsScreen(
     onBack: () -> Unit,
     onAddGroup: () -> Unit,
     onOpenGroup: (String) -> Unit,
+    /** True when hosted inside the Split hub tab — the hub already owns the top bar. */
+    embedded: Boolean = false,
     viewModel: GroupsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -61,11 +63,13 @@ fun GroupsScreen(
         containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Groups", style = MaterialTheme.typography.titleLarge) },
-                navigationIcon = { TonalIconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
-            )
+            if (!embedded) {
+                CenterAlignedTopAppBar(
+                    title = { Text("Groups", style = MaterialTheme.typography.titleLarge) },
+                    navigationIcon = { TonalIconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
+                )
+            }
         },
         floatingActionButton = { com.omer.expensetracker.presentation.components.SolidFab(onClick = onAddGroup, contentDescription = "Add group") }
     ) { padding ->

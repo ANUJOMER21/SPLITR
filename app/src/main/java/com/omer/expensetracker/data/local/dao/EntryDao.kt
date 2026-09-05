@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.RawQuery
 import androidx.room.Update
+import androidx.room.Upsert
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.omer.expensetracker.data.local.entity.EntryEntity
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,9 @@ interface EntryDao {
     @Query("SELECT * FROM entries WHERE linkedSharedExpenseId = :sharedExpenseId AND isDeleted = 0")
     suspend fun getByLinkedSharedExpenseId(sharedExpenseId: String): EntryEntity?
 
+    @Query("SELECT * FROM entries WHERE linkedGoalContributionId = :contributionId AND isDeleted = 0")
+    suspend fun getByLinkedGoalContributionId(contributionId: String): EntryEntity?
+
     @Query("SELECT * FROM entries WHERE isDeleted = 0")
     suspend fun getAllActive(): List<EntryEntity>
 
@@ -29,6 +33,9 @@ interface EntryDao {
 
     @Insert
     suspend fun insert(entry: EntryEntity)
+
+    @Upsert
+    suspend fun upsert(entry: EntryEntity)
 
     @Insert
     suspend fun insertAll(entries: List<EntryEntity>)

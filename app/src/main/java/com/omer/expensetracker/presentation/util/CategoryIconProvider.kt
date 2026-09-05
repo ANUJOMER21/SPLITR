@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SportsEsports
@@ -31,6 +32,7 @@ object CategoryIconProvider {
         "entertainment" to Icons.Filled.Movie,
         "health" to Icons.Filled.LocalHospital,
         "groceries" to Icons.Filled.LocalGroceryStore,
+        "savings" to Icons.Filled.Savings,
         "other" to Icons.Filled.Category,
         "home" to Icons.Filled.Home,
         "travel" to Icons.Filled.Flight,

@@ -3,6 +3,7 @@ package com.omer.expensetracker.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import androidx.room.Update
 import com.omer.expensetracker.data.local.entity.RecurringRuleEntity
 import kotlinx.coroutines.flow.Flow
@@ -18,6 +19,9 @@ interface RecurringRuleDao {
 
     @Insert
     suspend fun insert(rule: RecurringRuleEntity)
+
+    @Upsert
+    suspend fun upsert(rule: RecurringRuleEntity)
 
     @Insert
     suspend fun insertAll(rules: List<RecurringRuleEntity>)

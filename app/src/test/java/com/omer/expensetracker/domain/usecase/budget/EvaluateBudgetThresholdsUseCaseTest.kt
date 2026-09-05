@@ -26,6 +26,8 @@ private class FakeBudgetRepository : BudgetRepository {
     override suspend fun getBudgetForCategory(categoryId: String?): Budget? = budget
     override suspend fun upsertBudget(categoryId: String?, monthlyLimitMinor: Long): Budget = budget
     override suspend fun deleteBudget(id: String) {}
+    override suspend fun upsertFromRemote(budget: com.omer.expensetracker.domain.model.Budget) {}
+    override suspend fun deleteFromRemote(id: String) {}
     override suspend fun markWarningNotified(id: String, yearMonth: String) {
         budget = budget.copy(warningNotifiedMonth = yearMonth)
     }

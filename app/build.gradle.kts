@@ -115,6 +115,9 @@ dependencies {
     // Biometric
     implementation(libs.androidx.biometric)
 
+    // Image loading (receipt photos)
+    implementation(libs.coil.compose)
+
     // Charts
     implementation(libs.vico.compose.m3)
     implementation(libs.vico.core)

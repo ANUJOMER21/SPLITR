@@ -56,7 +56,7 @@ class SettlementRepositoryImpl @Inject constructor(
             val entity = SettlementEntity(
                 id = UUID.randomUUID().toString(), payerFriendId = payerFriendId, receiverFriendId = receiverFriendId,
                 amountMinor = amountMinor, dateEpochDay = date.toEpochDay(), note = note, groupId = groupId,
-                createdAt = now, updatedAt = now
+                batchId = null, createdAt = now, updatedAt = now
             )
             settlementDao.insert(entity)
             applyDelta(payerFriendId, receiverFriendId, amountMinor, groupId)
@@ -66,6 +66,35 @@ class SettlementRepositoryImpl @Inject constructor(
         }
         widgetRefresher.refreshAll()
         return entity.toDomain()
+    }
+
+    override suspend fun recordAllocatedSettlement(
+        payerFriendId: String,
+        receiverFriendId: String,
+        date: LocalDate,
+        note: String?,
+        allocations: Map<String?, Long>
+    ): List<Settlement> {
+        val slices = allocations.filterValues { it > 0L }
+        if (slices.isEmpty()) return emptyList()
+        val entities = db.withTransaction {
+            val now = System.currentTimeMillis()
+            val batchId = if (slices.size > 1) UUID.randomUUID().toString() else null
+            slices.map { (groupId, amountMinor) ->
+                val entity = SettlementEntity(
+                    id = UUID.randomUUID().toString(), payerFriendId = payerFriendId, receiverFriendId = receiverFriendId,
+                    amountMinor = amountMinor, dateEpochDay = date.toEpochDay(), note = note, groupId = groupId,
+                    batchId = batchId, createdAt = now, updatedAt = now
+                )
+                settlementDao.insert(entity)
+                applyDelta(payerFriendId, receiverFriendId, amountMinor, groupId)
+                logActivity(groupId, ActivityType.SETTLEMENT_RECORDED, "Settlement recorded — ${"%.2f".format(amountMinor / 100.0)}", now)
+                syncOutbox.enqueue(SyncEntityType.SETTLEMENT, entity.id, SyncOperation.UPSERT)
+                entity
+            }
+        }
+        widgetRefresher.refreshAll()
+        return entities.map { it.toDomain() }
     }
 
     override suspend fun editSettlement(id: String, amountMinor: Long, date: LocalDate, note: String?) {
@@ -84,16 +113,27 @@ class SettlementRepositoryImpl @Inject constructor(
     override suspend fun deleteSettlement(id: String) {
         db.withTransaction {
             val existing = settlementDao.getById(id) ?: return@withTransaction
-            applyDelta(existing.payerFriendId, existing.receiverFriendId, -existing.amountMinor, existing.groupId)
-            val now = System.currentTimeMillis()
-            settlementDao.softDelete(id, now)
-            logActivity(existing.groupId, ActivityType.SETTLEMENT_DELETED, "Settlement deleted", now)
-            syncOutbox.enqueue(SyncEntityType.SETTLEMENT, id, SyncOperation.DELETE)
+            reverseAndSoftDelete(existing)
         }
         widgetRefresher.refreshAll()
     }
 
-    override suspend fun upsertFromRemote(id: String, payerFriendId: String, receiverFriendId: String, amountMinor: Long, date: LocalDate, note: String?, groupId: String?) {
+    override suspend fun deleteSettlementBatch(batchId: String) {
+        db.withTransaction {
+            settlementDao.getByBatch(batchId).forEach { reverseAndSoftDelete(it) }
+        }
+        widgetRefresher.refreshAll()
+    }
+
+    private suspend fun reverseAndSoftDelete(existing: SettlementEntity) {
+        applyDelta(existing.payerFriendId, existing.receiverFriendId, -existing.amountMinor, existing.groupId)
+        val now = System.currentTimeMillis()
+        settlementDao.softDelete(existing.id, now)
+        logActivity(existing.groupId, ActivityType.SETTLEMENT_DELETED, "Settlement deleted", now)
+        syncOutbox.enqueue(SyncEntityType.SETTLEMENT, existing.id, SyncOperation.DELETE)
+    }
+
+    override suspend fun upsertFromRemote(id: String, payerFriendId: String, receiverFriendId: String, amountMinor: Long, date: LocalDate, note: String?, groupId: String?, batchId: String?) {
         db.withTransaction {
             val existing = settlementDao.getById(id)
             val now = System.currentTimeMillis()
@@ -102,7 +142,7 @@ class SettlementRepositoryImpl @Inject constructor(
                     SettlementEntity(
                         id = id, payerFriendId = payerFriendId, receiverFriendId = receiverFriendId,
                         amountMinor = amountMinor, dateEpochDay = date.toEpochDay(), note = note, groupId = groupId,
-                        createdAt = now, updatedAt = now
+                        batchId = batchId, createdAt = now, updatedAt = now
                     )
                 )
                 applyDelta(payerFriendId, receiverFriendId, amountMinor, groupId)
@@ -111,7 +151,8 @@ class SettlementRepositoryImpl @Inject constructor(
                 settlementDao.update(
                     existing.copy(
                         payerFriendId = payerFriendId, receiverFriendId = receiverFriendId,
-                        amountMinor = amountMinor, dateEpochDay = date.toEpochDay(), note = note, groupId = groupId, updatedAt = now
+                        amountMinor = amountMinor, dateEpochDay = date.toEpochDay(), note = note, groupId = groupId,
+                        batchId = batchId, updatedAt = now
                     )
                 )
                 applyDelta(payerFriendId, receiverFriendId, amountMinor, groupId)

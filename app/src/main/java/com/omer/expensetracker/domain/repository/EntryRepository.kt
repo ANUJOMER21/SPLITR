@@ -14,6 +14,12 @@ interface EntryRepository {
     suspend fun updateEntry(entry: Entry)
     suspend fun softDeleteEntry(id: String)
     suspend fun restoreEntry(id: String)
+
+    /** Cloud-sync-only: merge an entry pulled from this account's Firestore backup. Linked
+     * entries (mirrors of a shared expense / goal contribution) are never synced this way — they
+     * are re-derived on each device from their source. */
+    suspend fun upsertFromRemote(entry: Entry)
+    suspend fun deleteFromRemote(id: String)
     fun observeMonthlySummary(month: YearMonth): Flow<MonthlySummary>
     fun observeCategoryBreakdown(month: YearMonth): Flow<List<CategoryBreakdownItem>>
 }

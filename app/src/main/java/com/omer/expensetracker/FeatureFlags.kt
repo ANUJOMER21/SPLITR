@@ -19,4 +19,11 @@ object FeatureFlags {
      * the cross-device sync outbox still waits on Phase 5's backend half.
      */
     const val CLOUD_SYNC_ENABLED = true
+
+    /**
+     * Dev scaffolding — shows a "Load sample split data" row under More ▸ Split with friends
+     * that seeds friends, groups and shared expenses for QA of the settle-up flows. Keep `false`
+     * for real builds.
+     */
+    const val SPLIT_SAMPLE_DATA_SEED = false
 }

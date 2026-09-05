@@ -19,6 +19,7 @@ workManager = "2.11.0"
 kotlinxCoroutines = "1.10.2"
 kotlinxSerializationJson = "1.9.0"
 biometric = "1.1.0"
+coil = "2.7.0"
 sqlcipher = "4.7.0"
 vico = "2.2.1"
 glance = "1.2.0"
@@ -72,6 +73,7 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 
 androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 vico-core = { group = "com.patrykandpatrick.vico", name = "core", version.ref = "vico" }

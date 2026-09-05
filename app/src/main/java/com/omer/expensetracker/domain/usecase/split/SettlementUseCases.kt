@@ -23,6 +23,23 @@ class RecordSettlementUseCase @Inject constructor(
             settlementRepository.recordSettlement(payerFriendId, receiverFriendId, amountMinor, date, note?.trim()?.ifBlank { null }, groupId)
         )
     }
+
+    /** Records a settlement split across several buckets — [allocations] maps a groupId (or
+     * `null` for the non-group bucket) to that slice's amount. */
+    suspend fun allocated(
+        payerFriendId: String,
+        receiverFriendId: String,
+        date: LocalDate,
+        note: String?,
+        allocations: Map<String?, Long>
+    ): UseCaseResult<List<Settlement>> {
+        val slices = allocations.filterValues { it > 0L }
+        if (slices.isEmpty()) return UseCaseResult.Failure("Amount must be greater than zero")
+        if (payerFriendId == receiverFriendId) return UseCaseResult.Failure("Payer and receiver must be different people")
+        return UseCaseResult.Success(
+            settlementRepository.recordAllocatedSettlement(payerFriendId, receiverFriendId, date, note?.trim()?.ifBlank { null }, slices)
+        )
+    }
 }
 
 class EditSettlementUseCase @Inject constructor(
@@ -38,5 +55,10 @@ class EditSettlementUseCase @Inject constructor(
 class DeleteSettlementUseCase @Inject constructor(
     private val settlementRepository: SettlementRepository
 ) {
-    suspend operator fun invoke(id: String) = settlementRepository.deleteSettlement(id)
+    /** Deletes the whole payment when [id] is one slice of a multi-group settlement batch. */
+    suspend operator fun invoke(id: String) {
+        val batchId = settlementRepository.getSettlement(id)?.batchId
+        if (batchId != null) settlementRepository.deleteSettlementBatch(batchId)
+        else settlementRepository.deleteSettlement(id)
+    }
 }

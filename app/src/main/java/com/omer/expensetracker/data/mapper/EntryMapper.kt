@@ -11,10 +11,13 @@ fun EntryEntity.toDomain(): Entry = Entry(
     amountMinor = amountMinor,
     categoryId = categoryId,
     date = LocalDate.ofEpochDay(dateEpochDay),
+    note = note,
+    photoUri = photoUri,
     createdAt = createdAt,
     updatedAt = updatedAt,
     isDeleted = isDeleted,
-    linkedSharedExpenseId = linkedSharedExpenseId
+    linkedSharedExpenseId = linkedSharedExpenseId,
+    linkedGoalContributionId = linkedGoalContributionId
 )
 
 fun Entry.toEntity(): EntryEntity = EntryEntity(
@@ -23,8 +26,11 @@ fun Entry.toEntity(): EntryEntity = EntryEntity(
     amountMinor = amountMinor,
     categoryId = categoryId,
     dateEpochDay = date.toEpochDay(),
+    note = note?.trim()?.ifBlank { null },
+    photoUri = photoUri?.ifBlank { null },
     createdAt = createdAt,
     updatedAt = updatedAt,
     isDeleted = isDeleted,
-    linkedSharedExpenseId = linkedSharedExpenseId
+    linkedSharedExpenseId = linkedSharedExpenseId,
+    linkedGoalContributionId = linkedGoalContributionId
 )

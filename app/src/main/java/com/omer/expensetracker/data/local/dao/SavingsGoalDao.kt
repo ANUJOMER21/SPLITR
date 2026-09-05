@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
 import com.omer.expensetracker.data.local.entity.SavingsGoalEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -24,6 +25,9 @@ interface SavingsGoalDao {
 
     @Insert
     suspend fun insert(goal: SavingsGoalEntity)
+
+    @Upsert
+    suspend fun upsert(goal: SavingsGoalEntity)
 
     @Insert
     suspend fun insertAll(goals: List<SavingsGoalEntity>)

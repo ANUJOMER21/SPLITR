@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Icon
@@ -53,12 +54,15 @@ private data class BottomTab(val route: String, val navigateRoute: String, val l
  * [NavDestination.hierarchy]); [navigateRoute] is the concrete route passed to
  * [androidx.navigation.NavController.navigate] — they differ for EntryList, whose route
  * pattern carries an optional query placeholder that isn't itself navigable. */
-private val bottomTabs = listOf(
-    BottomTab(Screen.Dashboard.route, Screen.Dashboard.route, "Home", Icons.Filled.Home),
-    BottomTab(Screen.EntryList.route, Screen.EntryList.route(), "Entries", Icons.AutoMirrored.Filled.List),
-    BottomTab(Screen.Insights.route, Screen.Insights.route, "Insights", Icons.Filled.BarChart),
-    BottomTab(Screen.More.route, Screen.More.route, "More", Icons.Filled.MoreHoriz)
-)
+private val bottomTabs = buildList {
+    add(BottomTab(Screen.Dashboard.route, Screen.Dashboard.route, "Home", Icons.Filled.Home))
+    add(BottomTab(Screen.EntryList.route, Screen.EntryList.route(), "Entries", Icons.AutoMirrored.Filled.List))
+    if (com.omer.expensetracker.FeatureFlags.SPLIT_WITH_FRIENDS_ENABLED) {
+        add(BottomTab(Screen.SplitHome.route, Screen.SplitHome.route, "Split", Icons.Filled.Groups))
+    }
+    add(BottomTab(Screen.Insights.route, Screen.Insights.route, "Insights", Icons.Filled.BarChart))
+    add(BottomTab(Screen.More.route, Screen.More.route, "More", Icons.Filled.MoreHoriz))
+}
 
 /** True for routes that own a bottom-nav tab — the bar only shows on these top-level
  * destinations, staying hidden on every pushed detail/edit screen. */

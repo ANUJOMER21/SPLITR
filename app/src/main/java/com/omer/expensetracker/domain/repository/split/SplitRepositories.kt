@@ -110,11 +110,28 @@ interface SettlementRepository {
         note: String?,
         groupId: String?
     ): Settlement
+
+    /** Records one friend-level settlement split across several buckets in a single transaction —
+     * [allocations] maps a groupId (or `null` for the non-group bucket) to the amount that slice
+     * settles. When more than one slice is written they share a generated `batchId`, so
+     * [deleteSettlementBatch] can reverse the whole payment at once. Each slice applies its
+     * balance delta and syncs exactly like a plain [recordSettlement]. */
+    suspend fun recordAllocatedSettlement(
+        payerFriendId: String,
+        receiverFriendId: String,
+        date: LocalDate,
+        note: String?,
+        allocations: Map<String?, Long>
+    ): List<Settlement>
+
     suspend fun editSettlement(id: String, amountMinor: Long, date: LocalDate, note: String?)
     suspend fun deleteSettlement(id: String)
 
+    /** Reverses and soft-deletes every slice of a multi-group settlement sharing [batchId]. */
+    suspend fun deleteSettlementBatch(batchId: String)
+
     /** Cloud-sync-only idempotent upsert by a known (remote) id — see [FriendRepository.upsertFromRemote]. */
-    suspend fun upsertFromRemote(id: String, payerFriendId: String, receiverFriendId: String, amountMinor: Long, date: LocalDate, note: String?, groupId: String?)
+    suspend fun upsertFromRemote(id: String, payerFriendId: String, receiverFriendId: String, amountMinor: Long, date: LocalDate, note: String?, groupId: String?, batchId: String?)
 
     /** Cloud-sync-only: reverses and soft-deletes a settlement that was deleted on another device. */
     suspend fun deleteFromRemote(id: String)

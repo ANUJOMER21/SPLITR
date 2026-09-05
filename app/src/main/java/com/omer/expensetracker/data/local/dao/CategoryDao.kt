@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.omer.expensetracker.data.local.entity.CategoryEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -44,6 +45,9 @@ interface CategoryDao {
 
     @Insert
     suspend fun insert(category: CategoryEntity)
+
+    @Upsert
+    suspend fun upsert(category: CategoryEntity)
 
     @Insert
     suspend fun insertAll(categories: List<CategoryEntity>)

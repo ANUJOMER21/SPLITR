@@ -117,7 +117,7 @@ fun EntryListScreen(
                 TextField(
                     value = state.filter.searchQuery,
                     onValueChange = { viewModel.updateFilter(state.filter.copy(searchQuery = it)) },
-                    placeholder = { Text("Search category or amount") },
+                    placeholder = { Text("Search notes, category, amount") },
                     leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                     singleLine = true,
                     shape = MaterialTheme.shapes.extraLarge,

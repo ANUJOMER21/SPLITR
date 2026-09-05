@@ -38,6 +38,8 @@ private class FakeRecurringRuleRepository : RecurringRuleRepository {
 
     override suspend fun updateRule(rule: RecurringRule) { rules[rule.id] = rule }
     override suspend fun deleteRule(id: String) { rules.remove(id) }
+    override suspend fun upsertFromRemote(rule: com.omer.expensetracker.domain.model.RecurringRule) {}
+    override suspend fun deleteFromRemote(id: String) {}
     override suspend fun setPaused(id: String, isPaused: Boolean) {
         rules[id]?.let { rules[id] = it.copy(isPaused = isPaused) }
     }
@@ -65,6 +67,8 @@ private class FakeEntryRepository : EntryRepository {
     override suspend fun updateEntry(entry: Entry) {}
     override suspend fun softDeleteEntry(id: String) {}
     override suspend fun restoreEntry(id: String) {}
+    override suspend fun upsertFromRemote(entry: com.omer.expensetracker.domain.model.Entry) {}
+    override suspend fun deleteFromRemote(id: String) {}
     override fun observeMonthlySummary(month: YearMonth) = flowOf(com.omer.expensetracker.domain.model.MonthlySummary(0, 0))
     override fun observeCategoryBreakdown(month: YearMonth) = flowOf(emptyList<com.omer.expensetracker.domain.model.CategoryBreakdownItem>())
 }

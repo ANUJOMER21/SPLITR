@@ -17,7 +17,7 @@ import kotlinx.serialization.Serializable
             onDelete = ForeignKey.SET_NULL
         )
     ],
-    indices = [Index("categoryId"), Index("dateEpochDay"), Index("type"), Index("isDeleted"), Index("linkedSharedExpenseId")]
+    indices = [Index("categoryId"), Index("dateEpochDay"), Index("type"), Index("isDeleted"), Index("linkedSharedExpenseId"), Index("linkedGoalContributionId"), Index("photoUri")]
 )
 data class EntryEntity(
     @PrimaryKey val id: String,
@@ -26,6 +26,11 @@ data class EntryEntity(
     val amountMinor: Long,
     val categoryId: String?,
     val dateEpochDay: Long,
+    /** Free-text label — what the money was for / who it was paid to. Searchable from the
+     * entry list. Null or blank when the user didn't add one. */
+    val note: String? = null,
+    /** Persisted content:// URI of an attached receipt photo, or null. */
+    val photoUri: String? = null,
     val createdAt: Long,
     val updatedAt: Long,
     val isDeleted: Boolean = false,
@@ -33,5 +38,9 @@ data class EntryEntity(
      * sync (amount, date, deletion) by [com.omer.expensetracker.data.repository.split
      * .SharedExpenseRepositoryImpl] whenever that expense changes, so "what you actually spent"
      * shows up in your regular entries and dashboard totals without double-entry. */
-    val linkedSharedExpenseId: String? = null
+    val linkedSharedExpenseId: String? = null,
+    /** Set when this entry mirrors a savings-goal contribution — kept in sync (amount, date,
+     * deletion) by [com.omer.expensetracker.data.repository.SavingsGoalRepositoryImpl], so money
+     * moved into a goal counts as spending on that day under the "Savings" category. */
+    val linkedGoalContributionId: String? = null
 )
