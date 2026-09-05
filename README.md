@@ -1,103 +1,200 @@
-# 💰 Expense Tracker — Ultimate Personal & Shared Finance
 
-[![Android](https://img.shields.io/badge/Platform-Android-brightgreen.svg)](https://developer.android.com)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9+-blue.svg)](https://kotlinlang.org)
-[![Compose](https://img.shields.io/badge/Jetpack-Compose-blue.svg)](https://developer.android.com/jetpack/compose)
-[![Hilt](https://img.shields.io/badge/DI-Hilt-orange.svg)](https://dagger.dev/hilt/)
-[![Firebase](https://img.shields.io/badge/Backend-Firebase-ffca28.svg)](https://firebase.google.com/)
+# 💰 Expense Tracker
+
+### Ultimate Personal & Shared Finance Ecosystem for Android
+
+[![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9+-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
+[![Hilt](https://img.shields.io/badge/DI-Hilt-FF6F00?logo=android&logoColor=white)](https://dagger.dev/hilt/)
+[![Firebase](https://img.shields.io/badge/Backend-Firebase-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20MVI-purple)]()
 
-A high-performance, privacy-focused financial management ecosystem for Android. This isn't just an expense logger—it's a complete financial suite featuring **Clean Architecture**, **MVI/MVVM design patterns**, and a custom **Node.js notification backbone** to keep your shared finances in sync without the cost of premium cloud services.
-
----
-
-## 🌟 Comprehensive Feature Set
-
-### 1. 📔 Personal Ledger & Core Tracking
-*   **Omni-Channel Entry**: Rapidly log income and expenses with detailed metadata (notes, dates, categories).
-*   **Advanced Filtering**: Slice through your data by category, date range, or transaction type.
-*   **Soft Deletion & Restore**: Robust data safety with undo/restore capabilities for accidentally deleted entries.
-*   **Custom Category Engine**: Organize your life with custom icons and color-coded categories.
-
-### 2. 👥 "Split With Friends" (Social Finance)
-*   **Group Dynamics**: Create dedicated groups for shared apartments, travel, or events.
-*   **Complex Split Logic**:
-    *   **Equally**: Simple split among members.
-    *   **Exact Amounts**: Specify who owes exactly what.
-    *   **Percentages**: Split by custom percentage weights.
-*   **Debt Simplification Algorithm**: An advanced graph-based logic that minimizes the total number of payments needed to settle up within a group.
-*   **Interactive Comments**: Discuss specific expenses and attach context directly within the transaction.
-*   **Real-time Activity Log**: A chronological feed of who added, edited, or settled expenses.
-
-### 3. 🎯 Budgeting & Goal Architecture
-*   **Granular Budgeting**: Set hard limits on specific categories with dynamic progress tracking.
-*   **Savings Goals**: Define long-term targets (e.g., "New Car" or "Emergency Fund") with dedicated contribution tracking.
-*   **Threshold Alerts**: Visual cues when you're approaching or exceeding your monthly budget.
-
-### 4. 🤖 Intelligence & Analytics
-*   **Visual Spending Trends**: High-fidelity line and bar charts powered by **Vico**.
-*   **Category Breakdowns**: Interactive pie/donut charts for instant spending awareness.
-*   **Anomaly Detection**: AI-driven detection of unusual spending spikes or patterns.
-*   **Month-over-Month Growth**: Comparative analysis to track your financial health over time.
-*   **Heatmaps**: Temporal visualization of when you spend the most.
-
-### 5. ⚙️ Automation & Utility
-*   **Recurring Engine**: Set-and-forget logic for monthly rent, subscriptions, or salaries.
-*   **Smart Reminders**: System-level notifications for upcoming bill due dates.
-*   **Biometric Security**: Industry-standard Fingerprint and Face Unlock integration via BiometricPrompt.
-*   **Jetpack Glance Widgets**: Zero-click balance tracking and "Quick Add" actions directly from your home screen.
+> A high-performance, privacy-focused financial management app built with **Clean Architecture**, **MVI**, and modern Android best practices.  
+> Not just another expense logger — a complete personal + shared finance suite with offline-first design and zero-cost push notifications.
 
 ---
 
-## 🛠 Technical Excellence
+## ✨ Why Expense Tracker?
 
-### Architecture
-The project is built on **Clean Architecture**, enforcing a strict unidirectional data flow (UDF):
-- **Domain Layer**: Pure Kotlin. Contains `UseCases` (the verbs of the app), `Repository` interfaces, and pure domain entities.
-- **Data Layer**: Implements the repositories. Manages **Room** (local cache), **Firestore** (remote sync), and the **Sync Outbox** pattern for offline-first reliability.
-- **Presentation Layer**: 100% **Jetpack Compose**. Uses `ViewModels` to manage UI state and process user `Intents` (MVI).
+Most expense apps force you to choose between **privacy**, **powerful features**, or **shared groups**.  
+This project aims to give you all three — without requiring paid cloud plans.
 
-### The "Firebase Spark" Notification Server
-Included in the repo is a custom Node.js service (`notification-server/`). 
-- **The Problem**: Firebase Cloud Functions require a paid "Blaze" plan for Firestore triggers.
-- **The Solution**: This lightweight server uses the Admin SDK to listen to Firestore via `onSnapshot` (free tier) and pushes notifications via FCM, providing a production-grade experience on a $0 budget.
+- 🔒 Privacy-first (local-first with optional cloud sync)
+- 👥 Full group expense splitting with debt simplification
+- 📊 Rich analytics & budgeting tools
+- ⚡ Offline-first architecture
+- 🔔 Production-grade notifications on Firebase free tier
 
-### Tech Stack Summary
-- **Language**: Kotlin + Coroutines + Flow
-- **UI**: Jetpack Compose + Material 3
-- **DI**: Hilt
-- **DB**: Room (Persistence) + Firestore (Sync)
-- **Networking**: OkHttp + Retrofit (for server comms)
-- **Charts**: Vico Charts
-- **Widgets**: Jetpack Glance
-- **Testing**: JUnit 5, Mockk, Hilt Testing, Espresso
+---
+
+## 🌟 Feature Highlights
+
+### 📔 Personal Finance
+- Fast income & expense entry with notes, dates, and categories
+- Powerful filtering (category, date range, type)
+- Soft delete + restore for safety
+- Fully customizable categories with icons & colors
+- Recurring transactions (rent, salary, subscriptions)
+- Biometric lock (Fingerprint / Face Unlock)
+
+### 👥 Split with Friends (Social Finance)
+- Create groups for roommates, trips, or events
+- Flexible split methods:
+  - **Equally**
+  - **Exact amounts**
+  - **Percentages**
+- Advanced **Debt Simplification Algorithm** (minimizes number of transactions)
+- Interactive comments on expenses
+- Real-time activity feed
+
+### 🎯 Budgeting & Goals
+- Category-level budgets with progress indicators
+- Savings goals with contribution tracking
+- Visual alerts when approaching or exceeding limits
+
+### 📊 Intelligence & Analytics
+- Beautiful charts powered by **Vico**
+  - Spending trends (line & bar)
+  - Category breakdowns (donut/pie)
+  - Month-over-month comparisons
+  - Spending heatmaps
+- Anomaly detection for unusual spending patterns
+
+### ⚙️ Productivity Features
+- Jetpack Glance home screen widgets (balance + Quick Add)
+- Smart bill reminders
+- Offline-first with reliable sync
+
+---
+
+## 🏗 Architecture
+
+Built with **Clean Architecture** + unidirectional data flow:
+
+| Layer            | Responsibility                                          |
+|------------------|---------------------------------------------------------|
+| **Domain**       | Pure Kotlin — UseCases, Repository interfaces, Entities |
+| **Data**         | Room (local) + Firestore (remote) + Sync Outbox         |
+| **Presentation** | 100% Jetpack Compose + MVI (Intents → ViewModel → State)|
+
+**Key Design Decisions:**
+- Offline-first with Sync Outbox pattern
+- Strict separation of concerns
+- Testable UseCases and repositories
+- Fully reactive with Kotlin Flow + Coroutines
+
+---
+
+## 🔔 The "Firebase Spark" Notification Server
+
+Firebase Cloud Functions require the **Blaze (paid)** plan for Firestore triggers.
+
+**Solution included in this repo:**
+A lightweight Node.js server (`notification-server/`) that:
+- Uses the Firebase Admin SDK
+- Listens to Firestore with `onSnapshot` (works on free Spark plan)
+- Sends push notifications via FCM
+
+This gives you production-grade real-time notifications at **$0 cost**.
+
+→ See [Notification Server README](notification-server/README.md) for deployment (Render / Fly.io).
+
+---
+
+## 🛠 Tech Stack
+
+| Category     | Technology                          |
+|--------------|-------------------------------------|
+| Language     | Kotlin + Coroutines + Flow          |
+| UI           | Jetpack Compose + Material 3        |
+| Architecture | Clean Architecture + MVI            |
+| DI           | Hilt                                |
+| Local DB     | Room                                |
+| Remote       | Cloud Firestore                     |
+| Auth         | Firebase Authentication             |
+| Charts       | Vico                                |
+| Widgets      | Jetpack Glance                      |
+| Networking   | OkHttp + Retrofit                   |
+| Testing      | JUnit 5, MockK, Hilt Testing, Espresso |
 
 ---
 
 ## 🚀 Getting Started
 
-### 📦 Setup Instructions
-1.  **Clone & Sync**:
-    ```bash
-    git clone https://github.com/anujomer/expensetracker.git
-    ```
-2.  **Firebase Configuration**:
-    - Create a project on the [Firebase Console](https://console.firebase.google.com/).
-    - Enable **Firestore** and **Authentication** (Email/Google).
-    - Drop `google-services.json` into the `app/` folder.
-3.  **Local Environment**:
-    - Ensure you are using **Android Studio Ladybug (2024.2.1)** or newer.
-    - Gradle will automatically handle the dependency resolution.
+### Prerequisites
+- Android Studio **Ladybug (2024.2.1)** or newer
+- JDK 17+
 
-### 🔔 Setting up Notifications
-See the [Notification Server README](notification-server/README.md) for detailed instructions on deploying the Node.js bridge to Render or Fly.io.
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/anujomer/expensetracker.git
+   cd expensetracker
+   ```
+
+2. **Firebase Setup**
+    - Create a project in the [Firebase Console](https://console.firebase.google.com/)
+    - Enable **Authentication** (Email + Google)
+    - Enable **Cloud Firestore**
+    - Download `google-services.json` and place it in the `app/` directory
+
+3. **Open & Run**
+    - Open the project in Android Studio
+    - Let Gradle sync
+    - Run on an emulator or physical device
+
+### Notifications (Optional)
+Follow the instructions in [`notification-server/README.md`](notification-server/README.md) to deploy the free notification bridge.
 
 ---
 
-## 🛡 License & Contribution
+## 📸 Screenshots
 
-- **License**: Licensed under the [MIT License](LICENSE).
-- **Contributions**: Contributions are welcome! Please open an issue or submit a PR for any features or bug fixes.
+> *Add screenshots here once available*
+
+| Home | Analytics | Groups | Budget |
+|------|-----------|--------|--------|
+|      |           |        |        |
 
 ---
-**Developed with ❤️ by [Anuj Omer](https://github.com/ANUJOMER21)**
+
+## 🗺 Roadmap
+
+- [ ] Multi-currency support
+- [ ] Export to CSV / PDF
+- [ ] Dark mode refinements
+- [ ] Web companion (optional)
+- [ ] Advanced insights with on-device ML
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome and appreciated!
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+Please open an issue first for major changes so we can discuss them.
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**Built by [Anuj Omer](https://github.com/ANUJOMER21)**
+
+If you find this project useful, please consider giving it a ⭐
+
+</div>
